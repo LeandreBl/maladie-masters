@@ -1,0 +1,29 @@
+/// One run of the Wikipedia import, scheduled or launched from the panel.
+model DiseaseSyncRun {
+    id            String        @id @default(uuid())
+    status        SyncRunStatus @default(RUNNING)
+    trigger       SyncTrigger
+    triggeredById String?       @map("triggered_by_id")
+    /// What the run is doing right now, for the panel's progress line.
+    phase         String?
+    startedAt     DateTime      @default(now()) @map("started_at")
+    finishedAt    DateTime?     @map("finished_at")
+
+    /// Diseases found in Wikidata.
+    fetched  Int @default(0)
+    created  Int @default(0)
+    updated  Int @default(0)
+    /// Cards no longer found, and cards found again after going missing.
+    missing  Int @default(0)
+    restored Int @default(0)
+
+    error String?
+    /// `[{ at, message }]`, newest last.
+    log   Json    @default("[]")
+
+    triggeredBy User? @relation(fields: [triggeredById], references: [id], onDelete: SetNull)
+
+    @@index([startedAt])
+    @@index([status])
+    @@map("disease_sync_runs")
+}

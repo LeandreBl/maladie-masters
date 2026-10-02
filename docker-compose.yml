@@ -1,0 +1,134 @@
+name: maladie-masters
+
+# Base shared by every environment. No port is published here:
+# - locally, docker-compose.override.yml (loaded automatically) adds them;
+# - on the VPS, docker-compose.traefik.yml routes through Traefik instead,
+#   selected with COMPOSE_FILE in .env.
+
+services:
+  postgres:
+    restart: unless-stopped
+    image: postgres:17-alpine
+    # POSTGRES_USER, POSTGRES_PASSWORD and POSTGRES_DB come from .env.
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # $$: expanded by the container's shell, from the env_file values.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    restart: unless-stopped
+    image: redis:8-alpine
+    # Pub/sub and short-lived tickets only: nothing worth persisting, so no
+    # volume and no append-only file. A restart loses the pending tickets,
+    # which the fronts simply ask again.
+    command:
+      [
+        "redis-server",
+        "--requirepass",
+        "${REDIS_PASSWORD:?REDIS_PASSWORD is required, see example.env}",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+      ]
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    restart: unless-stopped
+    build:
+      context: ./backend
+    # Every application setting comes from .env, and the backend validates it at
+    # start-up (src/config/env.ts: defaults, format, description, help). Only
+    # what depends on the container layout is set here.
+    env_file: .env
+    environment:
+      PORT: 3000
+      # docker/start.sh assembles DATABASE_URL, percent-encoding the password.
+      POSTGRES_HOST: postgres
+      # REDIS_PASSWORD comes from .env.
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./secrets:/run/secrets:ro
+    # The container runs unprivileged, and secrets/ is a host bind mount that
+    # keeps its original ownership: without a matching uid, a key in mode 600 is
+    # unreadable. Defaults to the image's own `node` user.
+    user: "${BACKEND_UID:-1000}:${BACKEND_GID:-1000}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["sh", "docker/start.sh"]
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/health >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  # Fans the backend's events out to the fronts' websockets. Not given the
+  # whole .env: it needs Redis, nothing of PostgreSQL or Firebase.
+  websocket-relay:
+    restart: unless-stopped
+    build:
+      context: ./websocket-relay
+    environment:
+      PORT: 3000
+      REDIS_URL: redis://redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # Served on the API's host (/ws), so it answers to the same names.
+      ALLOWED_HOSTS: ${BACKEND_ALLOWED_HOSTS:-}
+      ALLOWED_ORIGINS: ${FRONTEND_ORIGIN:-http://localhost:5173,http://localhost:5174}
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/health >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  frontend:
+    restart: unless-stopped
+    build:
+      context: ./frontend
+      args:
+        VITE_BACKEND_URL: ${PUBLIC_BACKEND_URL:-http://localhost:3005}
+        VITE_WEBSOCKET_URL: ${PUBLIC_WEBSOCKET_URL:-ws://localhost:3006/ws}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
+    depends_on:
+      backend:
+        condition: service_started
+
+  admin-panel:
+    restart: unless-stopped
+    build:
+      context: ./admin-panel
+      args:
+        VITE_API_URL: ${PUBLIC_BACKEND_URL:-http://localhost:3005}
+        VITE_WEBSOCKET_URL: ${PUBLIC_WEBSOCKET_URL:-ws://localhost:3006/ws}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  postgres_data:

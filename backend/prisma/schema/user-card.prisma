@@ -1,0 +1,17 @@
+/// A card in a player's collection. Duplicates bump `quantity`.
+model UserCard {
+    userId          String   @map("user_id")
+    cardId          String   @map("card_id")
+    quantity        Int      @default(1)
+    /// How many of `quantity` are shiny copies.
+    shinyQuantity   Int      @default(0) @map("shiny_quantity")
+    firstObtainedAt DateTime @default(now()) @map("first_obtained_at")
+    lastObtainedAt  DateTime @default(now()) @map("last_obtained_at")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+    @@id([userId, cardId])
+    @@index([cardId])
+    @@map("user_cards")
+}

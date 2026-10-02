@@ -1,0 +1,33 @@
+/// Single row (`id = "global"`), edited from the admin panel.
+model GameSettings {
+    id String @id @default("global")
+
+    packIntervalMinutes Int     @default(10) @map("pack_interval_minutes")
+    packMaxStored       Int     @default(10) @map("pack_max_stored")
+
+    /// The booster's layout, as in the big TCGs: `[{ count, weights }]`, one
+    /// entry per kind of slot, from the commons to the rare slot. Each slot
+    /// draws its rarity from its own relative weights. See
+    /// `DEFAULT_PACK_SLOTS` in src/cards/rarity.ts.
+    packSlots Json @map("pack_slots")
+
+    /// A drawn card comes out shiny one time in `shinyOneIn`, any rarity.
+    shinyOneIn Int @default(10000) @map("shiny_one_in")
+
+    /// Share of the catalog, in percent, each rarity takes, from the most
+    /// viewed diseases down. COMMON is whatever is left.
+    shareLegendary Float @default(1) @map("share_legendary")
+    shareEpic      Float @default(4) @map("share_epic")
+    shareRare      Float @default(10) @map("share_rare")
+    shareUncommon  Float @default(25) @map("share_uncommon")
+
+    syncEnabled         Boolean @default(true) @map("sync_enabled")
+    syncIntervalHours   Int     @default(24) @map("sync_interval_hours")
+    /// Wikipedia serves at most 60 days of views through the batch API.
+    pageviewsWindowDays Int     @default(60) @map("pageviews_window_days")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@map("game_settings")
+}

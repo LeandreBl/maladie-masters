@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#4c2a8a"/>
+      <stop offset="1" stop-color="#140829"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff1a8"/>
+      <stop offset="0.45" stop-color="#f5c542"/>
+      <stop offset="1" stop-color="#b7791f"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffaf0"/>
+      <stop offset="1" stop-color="#f3e3c3"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- card back, offset: a hand of cards -->
+  <rect x="150" y="98" width="200" height="290" rx="22" fill="#2a1552" stroke="#7c5cc4" stroke-width="6" transform="rotate(-12 250 243)"/>
+  <!-- legendary card -->
+  <rect x="146" y="102" width="220" height="316" rx="24" fill="url(#gold)" transform="rotate(6 256 260)"/>
+  <rect x="162" y="118" width="188" height="284" rx="16" fill="url(#face)" transform="rotate(6 256 260)"/>
+  <g transform="rotate(6 256 260)">
+    <line x1="313.3" y1="285.7" x2="348.4" y2="300.3" stroke="#1f9e6e" stroke-width="13" stroke-linecap="round"/><circle cx="348.4" cy="300.3" r="15" fill="#34d399" stroke="#0f5f42" stroke-width="5"/><line x1="279.7" y1="319.3" x2="294.3" y2="354.4" stroke="#1f9e6e" stroke-width="13" stroke-linecap="round"/><circle cx="294.3" cy="354.4" r="15" fill="#34d399" stroke="#0f5f42" stroke-width="5"/><line x1="232.3" y1="319.3" x2="217.7" y2="354.4" stroke="#1f9e6e" stroke-width="13" stroke-linecap="round"/><circle cx="217.7" cy="354.4" r="15" fill="#34d399" stroke="#0f5f42" stroke-width="5"/><line x1="198.7" y1="285.7" x2="163.6" y2="300.3" stroke="#1f9e6e" stroke-width="13" stroke-linecap="round"/><circle cx="163.6" cy="300.3" r="15" fill="#34d399" stroke="#0f5f42" stroke-width="5"/><line x1="198.7" y1="238.3" x2="163.6" y2="223.7" stroke="#1f9e6e" stroke-width="13" stroke-linecap="round"/><circle cx="163.6" cy="223.7" r="15" fill="#34d399" stroke="#0f5f42" stroke-width="5"/><line x1="232.3" y1="204.7" x2="217.7" y2="169.6" stroke="#1f9e6e" stroke-width="13" stroke-linecap="round"/><circle cx="217.7" cy="169.6" r="15" fill="#34d399" stroke="#0f5f42" stroke-width="5"/><line x1="279.7" y1="204.7" x2="294.3" y2="169.6" stroke="#1f9e6e" stroke-width="13" stroke-linecap="round"/><circle cx="294.3" cy="169.6" r="15" fill="#34d399" stroke="#0f5f42" stroke-width="5"/><line x1="313.3" y1="238.3" x2="348.4" y2="223.7" stroke="#1f9e6e" stroke-width="13" stroke-linecap="round"/><circle cx="348.4" cy="223.7" r="15" fill="#34d399" stroke="#0f5f42" stroke-width="5"/>
+    <circle cx="256" cy="262" r="66" fill="#34d399" stroke="#0f5f42" stroke-width="7"/>
+    <circle cx="234" cy="244" r="13" fill="#0f766e" opacity="0.55"/>
+    <circle cx="280" cy="268" r="17" fill="#0f766e" opacity="0.55"/>
+    <circle cx="248" cy="292" r="9" fill="#0f766e" opacity="0.55"/>
+    <circle cx="226" cy="226" r="10" fill="#ffffff" opacity="0.6"/>
+  </g>
+  <!-- shiny sparkle -->
+  <path d="M378 118 Q386 150 418 158 Q386 166 378 198 Q370 166 338 158 Q370 150 378 118 Z" fill="#fff6c4" stroke="#f5c542" stroke-width="4"/>
+  <path d="M132 360 Q136 376 152 380 Q136 384 132 400 Q128 384 112 380 Q128 376 132 360 Z" fill="#fff6c4"/>
+</svg>

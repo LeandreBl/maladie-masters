@@ -1,0 +1,31 @@
+# Local development: loaded automatically by `docker compose` next to
+# docker-compose.yml. On the VPS, COMPOSE_FILE skips it (see example.env).
+
+services:
+  postgres:
+    ports:
+      # Loopback only, for `prisma migrate dev` and `npm run start:dev` on the
+      # host. The containers reach it through the compose network.
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+
+  redis:
+    ports:
+      # Loopback only, for `npm run start:dev` on the host. 6380 rather than
+      # 6379, often taken by another project's Redis.
+      - "127.0.0.1:${REDIS_PORT:-6380}:6379"
+
+  backend:
+    ports:
+      - "${BACKEND_PORT:-3005}:3000"
+
+  websocket-relay:
+    ports:
+      - "${WEBSOCKET_RELAY_PORT:-3006}:3000"
+
+  frontend:
+    ports:
+      - "${FRONTEND_PORT:-5173}:8080"
+
+  admin-panel:
+    ports:
+      - "${ADMIN_PANEL_PORT:-5174}:8080"

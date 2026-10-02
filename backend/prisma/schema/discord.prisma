@@ -1,0 +1,57 @@
+/// A player's Discord account, proven by a code typed in `/maladie link`.
+/// Legendary drops are announced with a mention of `discordUserId`.
+model DiscordAccount {
+    userId        String   @id @map("user_id")
+    /// Discord snowflake, kept as text: it does not fit in a JS number.
+    discordUserId String   @unique @map("discord_user_id")
+    username      String
+    /// The player can keep the link but stop the announcements.
+    announce      Boolean  @default(true)
+    linkedAt      DateTime @default(now()) @map("linked_at")
+    updatedAt     DateTime @updatedAt @map("updated_at")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("discord_accounts")
+}
+
+/// A short-lived code shown on the site and typed in Discord. One per player:
+/// asking for a new code replaces the previous one.
+model DiscordLinkCode {
+    userId    String   @id @map("user_id")
+    code      String   @unique
+    expiresAt DateTime @map("expires_at")
+    createdAt DateTime @default(now()) @map("created_at")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("discord_link_codes")
+}
+
+/// A Discord server that set up announcements. One row per server: Discord
+/// only lets a bot join a server once, and the server's settings live here
+/// rather than being repeated on each channel.
+model DiscordGuild {
+    guildId   String   @id @map("guild_id")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    channels DiscordChannel[]
+
+    @@map("discord_guilds")
+}
+
+/// A channel picked with `/maladie-setup channel`. A server can have several;
+/// the snowflake is unique across Discord, so a channel cannot be added twice.
+model DiscordChannel {
+    channelId String   @id @map("channel_id")
+    guildId   String   @map("guild_id")
+    /// Discord user who added the channel, for support.
+    setupBy   String   @map("setup_by")
+    createdAt DateTime @default(now()) @map("created_at")
+
+    guild DiscordGuild @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+
+    @@index([guildId])
+    @@map("discord_channels")
+}

@@ -1,0 +1,16 @@
+/// Every admin action on a player or on the catalog, shown in the panel.
+model AdminAuditEntry {
+    id           String   @id @default(uuid())
+    actorId      String?  @map("actor_id")
+    targetUserId String?  @map("target_user_id")
+    action       String
+    metadata     Json     @default("{}")
+    createdAt    DateTime @default(now()) @map("created_at")
+
+    actor      User? @relation("audit_actor", fields: [actorId], references: [id], onDelete: SetNull)
+    targetUser User? @relation("audit_target", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+    @@index([targetUserId, createdAt])
+    @@index([createdAt])
+    @@map("admin_audit_entries")
+}

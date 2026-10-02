@@ -1,0 +1,40 @@
+/// The languages the game is played in: interface, card names and articles.
+/// English is the fallback when a disease has no article in the asked one.
+enum Locale {
+    fr
+    en
+    zh
+}
+
+enum UserRole {
+    USER
+    ADMIN
+}
+
+/// Ordered from the most to the least common. The popularity ranking decides
+/// which one a card gets: the most viewed diseases are the rarest cards.
+enum Rarity {
+    COMMON
+    UNCOMMON
+    RARE
+    EPIC
+    LEGENDARY
+}
+
+/// Where the pack that was opened came from: the timer that refills every few
+/// minutes, or a bonus an admin granted on top of it.
+enum PackSource {
+    NATURAL
+    BONUS
+}
+
+enum SyncRunStatus {
+    RUNNING
+    SUCCEEDED
+    FAILED
+}
+
+enum SyncTrigger {
+    SCHEDULE
+    MANUAL
+}

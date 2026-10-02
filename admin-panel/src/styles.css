@@ -1,0 +1,136 @@
+/*
+ * Stylesheet entry point.
+ *
+ * The Organic token sheet comes first so its `:root` variables exist before
+ * any Tailwind utility resolves against them, and its base rules sit below
+ * Tailwind's own reset rather than fighting it.
+ */
+@import "./styles/organic.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Tailwind's preflight resets the heading face and body font; the design
+     system's own base rules are what should win here. */
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight);
+  }
+}
+
+@layer components {
+  /* The two radial circles behind the sign-in card. */
+  .login-ground {
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(
+        circle at 16% 20%,
+        var(--color-login-blob-1) 0 24%,
+        transparent 24.5%
+      ),
+      radial-gradient(
+        circle at 84% 80%,
+        var(--color-login-blob-2) 0 20%,
+        transparent 20.5%
+      );
+  }
+
+  /* Every metric and panel grid in the panel is one of these two: the
+     breakpoint is the content's own minimum, not a device width. */
+  .auto-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  }
+  .panel-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+}
+
+/*
+ * The five rarities. The Organic palette has two voices (accent, sage), which
+ * is not enough to tell five tiers apart at a glance, so they get their own
+ * ramp — muted to sit with the rest of the system, and re-tuned for dark.
+ */
+:root {
+  --rarity-common-bg: #ebe6df;
+  --rarity-common-fg: #5c554c;
+  --rarity-uncommon-bg: #e1ead6;
+  --rarity-uncommon-fg: #4b5e33;
+  --rarity-rare-bg: #dbe6f2;
+  --rarity-rare-fg: #2f5682;
+  --rarity-epic-bg: #ebdff3;
+  --rarity-epic-fg: #6a3c8c;
+  --rarity-legendary-bg: #f7e6bf;
+  --rarity-legendary-fg: #8a5a00;
+}
+
+[data-theme="dark"] {
+  --rarity-common-bg: #3a3631;
+  --rarity-common-fg: #d6cfc6;
+  --rarity-uncommon-bg: #34402a;
+  --rarity-uncommon-fg: #c4d8a8;
+  --rarity-rare-bg: #24364a;
+  --rarity-rare-fg: #a8c8ee;
+  --rarity-epic-bg: #3d2a4c;
+  --rarity-epic-fg: #d9b8f0;
+  --rarity-legendary-bg: #4a3a14;
+  --rarity-legendary-fg: #f3cf7a;
+}
+
+@layer components {
+  .rarity-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .rarity-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    flex: none;
+  }
+  .card-thumb {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    background: var(--color-neutral-200);
+  }
+  .log-box {
+    max-height: 320px;
+    overflow: auto;
+    border-radius: var(--radius-md);
+    background: var(--color-neutral-100);
+    padding: 10px 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+}
+
+@layer components {
+  .btn.btn-sm {
+    min-height: 28px;
+    padding: 3px 10px;
+    font-size: 12px;
+  }
+}

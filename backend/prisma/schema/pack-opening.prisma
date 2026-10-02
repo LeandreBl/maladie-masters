@@ -1,0 +1,34 @@
+model PackOpening {
+    id        String     @id @default(uuid())
+    userId    String     @map("user_id")
+    source    PackSource
+    createdAt DateTime   @default(now()) @map("created_at")
+
+    user  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+    cards PackOpeningCard[]
+
+    @@index([userId, createdAt])
+    @@index([createdAt])
+    @@map("pack_openings")
+}
+
+model PackOpeningCard {
+    id        String @id @default(uuid())
+    openingId String @map("opening_id")
+    cardId    String @map("card_id")
+    slot      Int
+    /// The rarity the card had when it dropped: it can change at the next sync.
+    rarity    Rarity
+    /// First copy of this card for the player.
+    isNew     Boolean @map("is_new")
+    /// A shiny copy: rolled for every drawn card, whatever its rarity
+    /// (`GameSettings.shinyOneIn`).
+    isShiny   Boolean @default(false) @map("is_shiny")
+
+    opening PackOpening @relation(fields: [openingId], references: [id], onDelete: Cascade)
+    card    Card        @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+    @@index([openingId])
+    @@index([cardId])
+    @@map("pack_opening_cards")
+}

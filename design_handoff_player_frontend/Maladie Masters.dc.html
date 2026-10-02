@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
+<style>
+:root{--bg:oklch(0.165 0.005 20);--surface:oklch(0.205 0.006 20);--surface2:oklch(0.25 0.007 20);--line:oklch(0.31 0.008 20);--text:oklch(0.96 0.004 20);--muted:oklch(0.72 0.01 20);--accent:oklch(0.62 0.2 22);--accent-deep:oklch(0.5 0.18 22);--card-bg:oklch(0.225 0.006 20);--r-common:#a39b8f;--r-uncommon:#86a95f;--r-rare:#5f95d6;--r-epic:#b07ee0;--r-legendary:#e3a81a;color-scheme:dark}
+html[data-mm-theme="light"]{--bg:oklch(0.975 0.003 20);--surface:oklch(0.995 0.002 20);--surface2:oklch(0.945 0.004 20);--line:oklch(0.885 0.006 20);--text:oklch(0.2 0.01 20);--muted:oklch(0.47 0.012 20);--accent:oklch(0.55 0.2 22);--accent-deep:oklch(0.46 0.18 22);--card-bg:oklch(0.995 0.002 20);--r-common:#8a8378;--r-uncommon:#5f7d3f;--r-rare:#3b6ea8;--r-epic:#8a4fb8;--r-legendary:#c48a00;color-scheme:light}
+body{margin:0;background:var(--bg);color:var(--text)}
+a{color:var(--accent)} a:hover{color:var(--text)}
+button{font-family:inherit}
+@keyframes mmHolo{from{background-position:130% 0}to{background-position:-130% 0}}
+@keyframes mmFloat{0%,100%{translate:0 0}50%{translate:0 -10px}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:var(--bg);color:var(--text);font-family:'Bricolage Grotesque','Noto Sans SC',system-ui,sans-serif;transition:background 0.25s,color 0.25s">
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Login" style="min-height:100vh;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 32px;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-0.01em"><span style="width:14px;height:14px;background:var(--accent);transform:rotate(45deg);border-radius:2px"></span>{{ t.appName }}</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div title="{{ t.language }}" style="display:flex;padding:3px;border-radius:999px;background:var(--surface2);gap:2px">
+        <sc-for list="{{ langs }}" as="l" hint-placeholder-count="3"><button onClick="{{ l.pick }}" style="border:none;cursor:pointer;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:700;background:{{ l.bg }};color:{{ l.fg }}">{{ l.label }}</button></sc-for>
+      </div>
+      <button onClick="{{ toggleTheme }}" title="{{ themeLabel }}" style="width:38px;height:38px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:grid;place-items:center"><span style="width:16px;height:16px;border-radius:50%;border:2px solid var(--text);background:linear-gradient(90deg,var(--text) 50%,transparent 50%)"></span></button>
+    </div>
+  </div>
+  <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));align-items:center;gap:48px;padding:24px 48px 64px;max-width:1280px;width:100%;box-sizing:border-box;margin:0 auto">
+    <div style="display:flex;flex-direction:column;gap:28px;max-width:560px">
+      <h1 style="margin:0;font-size:clamp(52px,7vw,96px);font-weight:800;line-height:0.92;letter-spacing:-0.035em">{{ t.appName }}</h1>
+      <p style="margin:0;font-size:21px;line-height:1.45;color:var(--muted);text-wrap:pretty">{{ t.tagline }}</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button onClick="{{ signIn }}" style="display:flex;align-items:center;gap:12px;padding:16px 26px;border-radius:14px;border:none;background:var(--accent);color:#fff;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 12px 30px -12px var(--accent)" style-hover="background:var(--accent-deep)"><span style="width:22px;height:22px;border-radius:50%;background:#fff;color:var(--accent);display:grid;place-items:center;font-size:13px;font-weight:800">G</span>{{ t.signInWithGoogle }}</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <sc-for list="{{ rarityChips }}" as="r" hint-placeholder-count="5"><span style="display:flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--muted)"><span style="width:8px;height:8px;transform:rotate(45deg);background:{{ r.col }}"></span>{{ r.label }}</span></sc-for>
+      </div>
+    </div>
+    <div style="position:relative;height:500px;display:flex;justify-content:center;align-items:center">
+      <div style="position:absolute;transform:translateX(-170px) rotate(-12deg) translateY(30px)"><dc-import name="MMCard" card="{{ loginA }}" w="240" hint-size="240px,336px"></dc-import></div>
+      <div style="position:absolute;transform:translateX(170px) rotate(12deg) translateY(30px)"><dc-import name="MMCard" card="{{ loginC }}" w="240" hint-size="240px,336px"></dc-import></div>
+      <div style="position:absolute;animation:mmFloat 5s ease-in-out infinite"><dc-import name="MMCard" card="{{ loginB }}" w="290" holo="{{ true }}" hint-size="290px,406px"></dc-import></div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:100vh">
+  <header style="position:sticky;top:0;z-index:20;background:color-mix(in oklch,var(--bg) 85%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)">
+    <div style="max-width:1240px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;gap:28px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-0.01em"><span style="width:14px;height:14px;background:var(--accent);transform:rotate(45deg);border-radius:2px"></span>{{ t.appName }}</div>
+      <nav style="display:flex;gap:4px;flex:1">
+        <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="4"><button onClick="{{ n.go }}" style="border:none;cursor:pointer;padding:8px 14px;border-radius:10px;font-weight:700;font-size:15px;background:{{ n.bg }};color:{{ n.fg }}" style-hover="color:var(--text)">{{ n.label }}</button></sc-for>
+      </nav>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 12px 6px 8px;border-radius:999px;background:var(--surface2)">
+          <span style="width:16px;height:22px;border-radius:4px;background:var(--accent)"></span>
+          <span style="font-weight:800;font-size:15px">{{ avail }}</span>
+          <sc-if value="{{ hasTimer }}" hint-placeholder-val="{{ true }}"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">{{ clock }}</span></sc-if>
+        </div>
+        <div title="{{ t.language }}" style="display:flex;padding:3px;border-radius:999px;background:var(--surface2);gap:2px">
+          <sc-for list="{{ langs }}" as="l" hint-placeholder-count="3"><button onClick="{{ l.pick }}" style="border:none;cursor:pointer;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:{{ l.bg }};color:{{ l.fg }}">{{ l.label }}</button></sc-for>
+        </div>
+        <button onClick="{{ toggleTheme }}" title="{{ themeLabel }}" style="width:34px;height:34px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:grid;place-items:center"><span style="width:14px;height:14px;border-radius:50%;border:2px solid var(--text);background:linear-gradient(90deg,var(--text) 50%,transparent 50%)"></span></button>
+        <button onClick="{{ goProfile }}" title="{{ ui.profile }}" style="width:34px;height:34px;border-radius:50%;border:2px solid;cursor:pointer;display:grid;place-items:center;font-weight:800;font-size:14px;color:var(--text);background:var(--surface2);border-color:{{ avatarRing }}">{{ initial }}</button>
+        <button onClick="{{ signOut }}" style="border:none;background:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;padding:6px" style-hover="color:var(--text)">{{ t.signOut }}</button>
+      </div>
+    </div>
+  </header>
+
+  <sc-if value="{{ isPacks }}" hint-placeholder-val="{{ true }}">
+  <main data-screen-label="Packs" style="max-width:1240px;margin:0 auto;padding:40px 32px 80px;display:flex;flex-direction:column;gap:48px">
+    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:32px;align-items:stretch">
+      <div style="position:relative;border-radius:28px;background:var(--surface);border:1px solid var(--line);min-height:460px;display:grid;place-items:center;overflow:hidden">
+        <div style="position:absolute;inset:0;background:radial-gradient(60% 50% at 50% 55%,color-mix(in oklch,var(--accent) 16%,transparent),transparent 70%)"></div>
+        <button ref="{{ refs.pack }}" onClick="{{ open }}" disabled="{{ noPacks }}" style="position:relative;width:230px;height:340px;border:none;background:none;padding:0;cursor:pointer" style-hover="transform:translateY(-6px) rotate(-1deg)">
+          <sc-if value="{{ stack3 }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;inset:0;border-radius:18px;background:var(--accent-deep);transform:translate(22px,-14px) rotate(6deg);opacity:0.55"></span></sc-if>
+          <sc-if value="{{ stack2 }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;inset:0;border-radius:18px;background:var(--accent-deep);transform:translate(11px,-7px) rotate(3deg);opacity:0.8"></span></sc-if>
+          <span style="position:absolute;inset:0;border-radius:18px;background:var(--accent);box-shadow:0 30px 60px -24px var(--accent);display:flex;flex-direction:column;overflow:hidden;opacity:{{ packOpacity }}">
+            <span style="height:34px;background:repeating-linear-gradient(90deg,var(--accent-deep) 0 10px,transparent 10px 20px);border-bottom:2px dashed rgba(255,255,255,0.45)"></span>
+            <span style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#fff;background:repeating-linear-gradient(45deg,transparent 0 12px,rgba(255,255,255,0.05) 12px 24px)">
+              <span style="width:86px;height:86px;border-radius:50%;border:3px solid rgba(255,255,255,0.85);display:grid;place-items:center;font-size:30px;font-weight:800;letter-spacing:-0.03em">MM</span>
+              <span style="font-size:20px;font-weight:800;letter-spacing:-0.01em">{{ t.appName }}</span>
+            </span>
+            <span style="height:22px;background:var(--accent-deep)"></span>
+          </span>
+        </button>
+      </div>
+      <div style="border-radius:28px;background:var(--surface);border:1px solid var(--line);padding:36px;display:flex;flex-direction:column;gap:26px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h2 style="margin:0;font-size:40px;font-weight:800;letter-spacing:-0.03em;line-height:1">{{ availLabel }}</h2>
+          <div style="color:var(--muted);font-size:15px">{{ timerLabel }}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px">
+          <sc-for list="{{ pips }}" as="p" hint-placeholder-count="10"><span style="height:28px;border-radius:6px;background:{{ p.bg }};border:1px solid var(--line)"></span></sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:18px;background:var(--surface2)">
+          <sc-if value="{{ hasTimer }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+              <span style="color:var(--muted);font-size:15px;font-weight:600">{{ t.packs.nextIn }}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:500">{{ clock }}</span>
+            </div>
+            <div style="height:6px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;background:var(--accent);border-radius:99px;transition:width 1s linear;width:{{ timerPct }}"></div></div>
+          </sc-if>
+          <sc-if value="{{ isFull }}" hint-placeholder-val="{{ false }}"><div style="color:var(--muted);font-size:15px">{{ fullLabel }}</div></sc-if>
+        </div>
+        <button onClick="{{ open }}" disabled="{{ noPacks }}" style="margin-top:auto;padding:20px;border-radius:16px;border:none;background:var(--accent);color:#fff;font-size:19px;font-weight:800;cursor:pointer;letter-spacing:-0.01em;box-shadow:0 14px 34px -14px var(--accent);opacity:{{ btnOpacity }}" style-hover="background:var(--accent-deep)">{{ openLabel }}</button>
+      </div>
+    </section>
+
+    <sc-if value="{{ hasLast }}" hint-placeholder-val="{{ false }}">
+    <section style="display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:22px;font-weight:800;letter-spacing:-0.02em">{{ lastTitle }}</h3>
+      </div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap">
+        <sc-for list="{{ lastCards }}" as="item" hint-placeholder-count="5"><div onClick="{{ item.open }}" style="cursor:pointer;transition:transform 0.15s" style-hover="transform:translateY(-6px)"><dc-import name="MMCard" card="{{ item.v }}" w="176" hint-size="176px,246px"></dc-import></div></sc-for>
+      </div>
+    </section>
+    </sc-if>
+
+    <section style="display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+        <h3 style="margin:0;font-size:22px;font-weight:800;letter-spacing:-0.02em">{{ t.packs.progress }}</h3>
+        <span style="color:var(--muted);font-size:15px">{{ summaryLine }}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+        <sc-for list="{{ progRows }}" as="r" hint-placeholder-count="5">
+          <div style="padding:18px;border-radius:18px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px"><span style="width:9px;height:9px;transform:rotate(45deg);background:{{ r.col }}"></span>{{ r.label }}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted)">{{ r.count }}</div>
+            <div style="height:6px;border-radius:99px;background:var(--surface2);overflow:hidden"><div style="height:100%;border-radius:99px;background:{{ r.col }};width:{{ r.pct }}"></div></div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ isCollection }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Collection" style="max-width:1240px;margin:0 auto;padding:40px 32px 80px;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+      <h1 style="margin:0;font-size:44px;font-weight:800;letter-spacing:-0.03em;line-height:1">{{ t.nav.collection }}</h1>
+      <span style="color:var(--muted);font-size:15px">{{ summaryLine }}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+      <sc-for list="{{ rarityFilters }}" as="r" hint-placeholder-count="6">
+        <button onClick="{{ r.pick }}" style="text-align:left;padding:14px;border-radius:16px;cursor:pointer;display:flex;flex-direction:column;gap:8px;color:var(--text);border:1px solid;background:{{ r.bg }};border-color:{{ r.border }}">
+          <span style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px"><span style="width:8px;height:8px;transform:rotate(45deg);background:{{ r.col }}"></span>{{ r.label }}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">{{ r.count }}</span>
+          <span style="display:block;height:4px;border-radius:99px;background:var(--surface2);overflow:hidden"><span style="display:block;height:100%;border-radius:99px;background:{{ r.col }};width:{{ r.pct }}"></span></span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px;border-radius:18px;background:var(--surface);border:1px solid var(--line)">
+      <div style="display:flex;padding:3px;border-radius:12px;background:var(--surface2);gap:2px">
+        <sc-for list="{{ ownedTabs }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.pick }}" style="border:none;cursor:pointer;padding:8px 14px;border-radius:10px;font-size:14px;font-weight:700;background:{{ o.bg }};color:{{ o.fg }};box-shadow:{{ o.sh }}">{{ o.label }}</button></sc-for>
+      </div>
+      <input type="search" value="{{ cSearch }}" onChange="{{ onSearch }}" placeholder="{{ t.collection.search }}" style="flex:1;min-width:180px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-family:inherit;font-size:15px;outline:none" style-focus="border-color:var(--accent)">
+      <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;font-weight:600">{{ ui.sortBy }}<select value="{{ cSort }}" onChange="{{ onSort }}" style="padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;font-weight:600"><sc-for list="{{ sortOpts }}" as="so" hint-placeholder-count="5"><option value="{{ so.v }}">{{ so.label }}</option></sc-for></select></label>
+      <span style="color:var(--muted);font-size:14px;font-family:'JetBrains Mono',monospace;padding-right:6px">{{ countLabel }}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,176px);justify-content:space-between;gap:22px 16px">
+      <sc-for list="{{ collItems }}" as="item" hint-placeholder-count="12"><div onClick="{{ item.open }}" style="cursor:pointer;transition:transform 0.15s" style-hover="transform:translateY(-6px)"><dc-import name="MMCard" card="{{ item.v }}" w="176" holo="{{ item.holo }}" hint-size="176px,246px"></dc-import></div></sc-for>
+    </div>
+    <div style="display:flex;justify-content:center;align-items:center;gap:14px">
+      <button onClick="{{ prevPage }}" disabled="{{ noPrev }}" style="width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:18px;cursor:pointer;opacity:{{ prevOp }}">←</button>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:14px">{{ pageLabel }}</span>
+      <button onClick="{{ nextPage }}" disabled="{{ noNext }}" style="width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:18px;cursor:pointer;opacity:{{ nextOp }}">→</button>
+    </div>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="History" style="max-width:1240px;margin:0 auto;padding:40px 32px 80px;display:flex;flex-direction:column;gap:24px">
+    <h1 style="margin:0;font-size:44px;font-weight:800;letter-spacing:-0.03em;line-height:1">{{ ui.history }}</h1>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <sc-for list="{{ historyRows }}" as="h" hint-placeholder-count="5">
+        <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;padding:20px;border-radius:22px;background:var(--surface);border:1px solid var(--line)">
+          <div style="flex:0 0 200px;display:flex;flex-direction:column;gap:8px">
+            <span style="font-weight:700;font-size:16px">{{ h.date }}</span>
+            <span style="align-self:flex-start;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:var(--surface2);color:{{ h.srcCol }}">{{ h.source }}</span>
+            <span style="font-size:14px;color:var(--muted)">{{ h.newLine }}</span>
+          </div>
+          <div style="flex:1;min-width:0;display:flex;gap:12px;overflow-x:auto;padding:6px 4px">
+            <sc-for list="{{ h.cards }}" as="item" hint-placeholder-count="5"><div onClick="{{ item.open }}" style="cursor:pointer;flex:none;transition:transform 0.15s" style-hover="transform:translateY(-4px)"><dc-import name="MMCard" card="{{ item.v }}" w="128" holo="{{ item.holo }}" hint-size="128px,179px"></dc-import></div></sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ isLeaderboard }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Leaderboard" style="max-width:980px;margin:0 auto;padding:40px 32px 80px;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <h1 style="margin:0;font-size:44px;font-weight:800;letter-spacing:-0.03em;line-height:1">{{ t.leaderboard.title }}</h1>
+      <p style="margin:0;color:var(--muted);font-size:15px;line-height:1.5">{{ t.leaderboard.scoring }}</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+      <sc-for list="{{ podium }}" as="p" hint-placeholder-count="3">
+        <div style="padding:24px;border-radius:24px;background:var(--surface);border:1px solid;display:flex;flex-direction:column;gap:14px;border-color:{{ p.col }};box-shadow:{{ p.sh }}">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:54px;font-weight:800;letter-spacing:-0.04em;line-height:1;color:{{ p.col }}">{{ p.rank }}</span>
+            <span style="width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:20px;background:var(--surface2)">{{ p.initial }}</span>
+          </div>
+          <div style="font-size:20px;font-weight:800;letter-spacing:-0.01em">{{ p.name }}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted)">{{ p.entry }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="border-radius:22px;background:var(--surface);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column">
+      <sc-for list="{{ lbRows }}" as="r" hint-placeholder-count="10">
+        <div style="display:grid;grid-template-columns:48px 38px minmax(0,1fr) auto;gap:14px;align-items:center;padding:13px 22px;border-bottom:1px solid var(--line);background:{{ r.bg }}">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--muted)">{{ r.rank }}</span>
+          <span style="width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--surface2)">{{ r.initial }}</span>
+          <span style="font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:14px">{{ r.entry }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Profile" style="max-width:880px;margin:0 auto;padding:40px 32px 80px;display:flex;flex-direction:column;gap:20px">
+    <h1 style="margin:0 0 4px;font-size:44px;font-weight:800;letter-spacing:-0.03em;line-height:1">{{ ui.profile }}</h1>
+    <section style="padding:28px;border-radius:24px;background:var(--surface);border:1px solid var(--line);display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+      <span style="width:88px;height:88px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:36px;font-weight:800;flex:none">{{ initial }}</span>
+      <div style="flex:1;min-width:240px;display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted)">{{ ui.displayName }}</span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input value="{{ nameDraft }}" onChange="{{ onName }}" maxlength="40" style="flex:1;min-width:180px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-family:inherit;font-size:17px;font-weight:600;outline:none" style-focus="border-color:var(--accent)">
+          <button onClick="{{ saveName }}" style="padding:12px 22px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:15px;font-weight:800;cursor:pointer" style-hover="background:var(--accent-deep)">{{ saveLabel }}</button>
+        </div>
+        <span style="font-size:14px;color:var(--muted)">{{ email }}</span>
+      </div>
+    </section>
+    <section style="padding:28px;border-radius:24px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:14px">
+      <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted)">{{ t.language }}</span>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+        <sc-for list="{{ langOpts }}" as="l" hint-placeholder-count="3"><button onClick="{{ l.pick }}" style="padding:18px;border-radius:16px;border:2px solid;background:var(--bg);color:var(--text);cursor:pointer;display:flex;flex-direction:column;gap:4px;text-align:left;border-color:{{ l.border }}"><span style="font-size:20px;font-weight:800">{{ l.name }}</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">{{ l.code }}</span></button></sc-for>
+      </div>
+    </section>
+    <section style="padding:28px;border-radius:24px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:14px">
+      <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted)">{{ ui.theme }}</span>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+        <sc-for list="{{ themeOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" style="padding:14px;border-radius:16px;border:2px solid;background:var(--bg);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:14px;text-align:left;border-color:{{ o.border }}"><span style="width:56px;height:40px;border-radius:10px;border:1px solid var(--line);display:flex;align-items:flex-end;padding:6px;box-sizing:border-box;gap:4px;background:{{ o.sw }}"><span style="width:14px;height:6px;border-radius:3px;background:var(--accent)"></span><span style="flex:1;height:6px;border-radius:3px;background:{{ o.ink }}"></span></span><span style="font-size:17px;font-weight:800">{{ o.label }}</span></button></sc-for>
+      </div>
+    </section>
+    <section data-screen-label="Profile — Discord" style="border-radius:24px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden">
+      <button onClick="{{ dFold }}" aria-expanded="{{ dOpen }}" style="display:flex;gap:16px;align-items:center;padding:20px 28px;border:none;background:transparent;color:var(--text);cursor:pointer;text-align:left;font-family:inherit" style-hover="background:var(--surface2)">
+        <img src="assets/discord/bot-icon.png" alt="" style="width:44px;height:44px;border-radius:14px;flex:none">
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted)">{{ t.discord.title }}</span>
+          <span style="display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;min-width:0"><span style="width:9px;height:9px;border-radius:50%;flex:none;background:{{ dDot }}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ dStatusLine }}</span></span>
+        </span>
+        <span style="width:32px;height:32px;border-radius:10px;background:var(--surface2);display:grid;place-items:center;flex:none;font-size:14px;transition:transform 0.2s;transform:{{ dChevron }}">▾</span>
+      </button>
+      <sc-if value="{{ dOpen }}" hint-placeholder-val="{{ false }}">
+      <div ref="{{ refs.dpanel }}" style="padding:0 28px 28px;display:flex;flex-direction:column;gap:18px">
+      <p style="margin:0;color:var(--muted);font-size:15px;line-height:1.5;text-wrap:pretty">{{ t.discord.intro }}</p>
+      <sc-if value="{{ dDisabled }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:18px;border-radius:16px;background:var(--bg);border:1px dashed var(--line);color:var(--muted);font-size:16px">{{ t.discord.disabled }}</div>
+      </sc-if>
+      <sc-if value="{{ dEnabled }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:20px;border-radius:18px;background:var(--bg);border:1px solid var(--line);display:flex;flex-direction:column;gap:18px">
+          <sc-if value="{{ dLinked }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+              <span style="width:52px;height:52px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-weight:800;font-size:20px;flex:none;position:relative">c<span style="position:absolute;right:0;bottom:0;width:14px;height:14px;border-radius:50%;background:var(--r-uncommon);border:3px solid var(--surface)"></span></span>
+              <div style="flex:1;min-width:200px;font-size:18px;font-weight:700;line-height:1.35">{{ dLinkedAs }}</div>
+              <button onClick="{{ dUnlink }}" style="padding:11px 20px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);font-size:15px;font-weight:700;cursor:pointer" style-hover="background:var(--surface2)">{{ t.discord.unlink }}</button>
+            </div>
+            <button onClick="{{ dToggle }}" role="switch" aria-checked="{{ dAnnounce }}" style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;text-align:left">
+              <span style="width:46px;height:28px;border-radius:999px;position:relative;flex:none;transition:background 0.18s;background:{{ dTrack }}"><span style="position:absolute;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:left 0.18s;left:{{ dKnob }}"></span></span>
+              <span style="font-size:16px;font-weight:700">{{ t.discord.announce }}</span>
+            </button>
+          </sc-if>
+          <sc-if value="{{ dUnlinked }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:18px;font-weight:700">{{ t.discord.notLinked }}</div>
+            <sc-if value="{{ dHasCode }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;color:var(--muted);font-size:15px;line-height:1.5">{{ t.discord.codeHelp }}</p>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 18px;border-radius:16px;background:var(--surface);border:1px solid var(--line)">
+                <code style="flex:1;min-width:220px;font-family:'JetBrains Mono',monospace;font-size:20px;word-break:break-all"><span style="color:var(--muted)">/maladie link code:</span><span style="color:var(--accent);font-weight:500">{{ dCode }}</span></code>
+                <button onClick="{{ dCopy }}" style="padding:9px 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--text);font-size:14px;font-weight:700;cursor:pointer">{{ dCopyLabel }}</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px">
+                <span ref="{{ refs.pulse }}" style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></span>
+                <span>{{ dExpires }}</span>
+              </div>
+            </sc-if>
+            <button onClick="{{ dGetCode }}" style="align-self:flex-start;padding:14px 24px;border-radius:14px;border:none;background:var(--accent);color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 12px 28px -14px var(--accent)" style-hover="background:var(--accent-deep)">{{ dCodeBtn }}</button>
+          </sc-if>
+        </div>
+
+        <div style="padding:20px;border-radius:18px;background:var(--bg);border:1px solid var(--line);display:flex;flex-direction:column;gap:14px">
+          <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted)">{{ ui.preview }}</span>
+          <div style="display:flex;gap:14px;padding:18px;border-radius:16px;background:var(--surface);border:1px solid var(--line)">
+            <img src="assets/discord/bot-icon.png" alt="" style="width:42px;height:42px;border-radius:50%;flex:none">
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:800;font-size:15px">{{ t.appName }}</span><span style="font-size:10px;font-weight:800;letter-spacing:0.06em;padding:2px 6px;border-radius:4px;background:var(--accent);color:#fff">BOT</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">{{ dTime }}</span></div>
+              <div style="font-size:15px;line-height:1.5"><sc-for list="{{ dMsg }}" as="g" hint-placeholder-count="3"><span style="border-radius:4px;font-weight:{{ g.fw }};color:{{ g.fg }};background:{{ g.bg }};padding:{{ g.pad }}">{{ g.text }}</span></sc-for></div>
+              <div style="margin-top:6px"><dc-import name="MMCard" card="{{ dCard }}" w="132" holo="{{ true }}" hint-size="132px,185px"></dc-import></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:20px;border-radius:18px;background:var(--bg);border:1px solid var(--line);display:flex;flex-direction:column;gap:16px">
+          <h3 style="margin:0;font-size:18px;font-weight:800;letter-spacing:-0.02em">{{ t.discord.serverTitle }}</h3>
+          <p style="margin:0;color:var(--muted);font-size:15px;line-height:1.5;text-wrap:pretty">{{ t.discord.serverHelp }}</p>
+          <a href="#" style="align-self:flex-start;display:flex;align-items:center;gap:10px;padding:14px 22px;border-radius:14px;background:var(--text);color:var(--bg);font-size:16px;font-weight:800;text-decoration:none" style-hover="opacity:0.88"><img src="assets/discord/bot-icon.png" alt="" style="width:22px;height:22px;border-radius:6px">{{ t.discord.invite }}</a>
+          <div style="display:flex;flex-direction:column;border-radius:16px;border:1px solid var(--line);overflow:hidden;margin-top:6px">
+            <sc-for list="{{ dCommands }}" as="cm" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:16px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface)">
+                <code style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text)">{{ cm.cmd }}</code>
+                <span style="font-size:14px;color:var(--muted);line-height:1.4">{{ cm.desc }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+      </div>
+      </sc-if>
+    </section>
+    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px">
+      <sc-for list="{{ statTiles }}" as="s" hint-placeholder-count="5"><div style="padding:20px;border-radius:20px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:var(--muted)">{{ s.label }}</span><span style="font-size:26px;font-weight:800;letter-spacing:-0.02em">{{ s.value }}</span></div></sc-for>
+    </section>
+    <button onClick="{{ signOut }}" style="align-self:flex-start;padding:12px 22px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);font-size:15px;font-weight:700;cursor:pointer" style-hover="background:var(--surface2)">{{ t.signOut }}</button>
+  </main>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ showOverlay }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Pack reveal" style="position:fixed;inset:0;z-index:50;background:rgba(10,8,10,0.94);backdrop-filter:blur(8px);color:#f4f0f1;display:flex;flex-direction:column;overflow:auto">
+  <div ref="{{ refs.dim }}" style="position:absolute;inset:0;background:#000;opacity:0;pointer-events:none"></div>
+  <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:20px 32px;gap:16px">
+    <div style="display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px"><span style="width:12px;height:12px;background:var(--accent);transform:rotate(45deg);border-radius:2px"></span>{{ t.appName }}</div>
+    <sc-if value="{{ isRevealing }}" hint-placeholder-val="{{ true }}"><button onClick="{{ revealAll }}" style="background:none;border:none;color:#f4f0f1;opacity:0.7;font-size:15px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:4px" style-hover="opacity:1">{{ t.packs.revealAll }}</button></sc-if>
+  </div>
+
+  <sc-if value="{{ isRevealing }}" hint-placeholder-val="{{ true }}">
+  <div style="position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;padding:24px 24px 48px">
+    <div style="display:flex;align-items:center;justify-content:center;gap:56px;flex-wrap:wrap">
+      <div style="position:relative;width:330px;height:462px;perspective:1400px">
+        <div ref="{{ refs.rays }}" style="position:absolute;left:50%;top:50%;width:1500px;height:1500px;margin:-750px 0 0 -750px;border-radius:50%;opacity:0;pointer-events:none;-webkit-mask-image:radial-gradient(circle,#000 10%,transparent 60%);mask-image:radial-gradient(circle,#000 10%,transparent 60%)"></div>
+        <div ref="{{ refs.glow }}" style="position:absolute;inset:-70px;border-radius:50%;opacity:0;pointer-events:none"></div>
+        <div ref="{{ refs.ring1 }}" style="position:absolute;left:50%;top:50%;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;border:3px solid #fff;opacity:0;pointer-events:none"></div>
+        <div ref="{{ refs.ring2 }}" style="position:absolute;left:50%;top:50%;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;border:2px solid #fff;opacity:0;pointer-events:none"></div>
+        <sc-if value="{{ noCur }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;border-radius:24px;border:2px dashed rgba(255,255,255,0.18)"></div></sc-if>
+        <div ref="{{ refs.card }}" onClick="{{ openCur }}" style="position:relative;cursor:pointer;transform-style:preserve-3d">
+          <sc-if value="{{ hasCur }}" hint-placeholder-val="{{ false }}"><dc-import name="MMCard" card="{{ cur }}" w="330" holo="{{ curHolo }}" hint-size="330px,462px"></dc-import></sc-if>
+        </div>
+        <div ref="{{ refs.stamp }}" style="position:absolute;left:0;right:0;top:-64px;text-align:center;font-size:30px;font-weight:800;letter-spacing:0.22em;text-transform:uppercase;opacity:0;pointer-events:none"></div>
+        <div ref="{{ refs.fx }}" style="position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:22px">
+        <div style="position:relative;width:180px;height:252px">
+          <div ref="{{ refs.sglow }}" style="position:absolute;inset:-60px;border-radius:50%;opacity:0;pointer-events:none"></div>
+          <button ref="{{ refs.stack }}" onClick="{{ flip }}" aria-label="{{ t.packs.tapToReveal }}" style="position:absolute;inset:0;border:none;background:none;padding:0;cursor:pointer">
+            <sc-for list="{{ stackList }}" as="s" hint-placeholder-count="5">
+              <span style="position:absolute;inset:0;border-radius:14px;border:2px solid rgba(255,255,255,0.22);background:repeating-linear-gradient(45deg,var(--accent) 0 9px,var(--accent-deep) 9px 18px);box-shadow:0 10px 24px -10px rgba(0,0,0,0.8);display:grid;place-items:center;transform:{{ s.tf }}"><span style="width:62px;height:62px;border-radius:50%;border:2px solid rgba(255,255,255,0.8);background:var(--accent-deep);display:grid;place-items:center;color:#fff;font-weight:800;font-size:21px">MM</span></span>
+            </sc-for>
+          </button>
+        </div>
+        <sc-if value="{{ hasRemaining }}" hint-placeholder-val="{{ true }}"><div style="max-width:220px;text-align:center;font-size:14px;line-height:1.4;opacity:0.75">{{ hintLine }}</div></sc-if>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <sc-for list="{{ dots }}" as="d" hint-placeholder-count="5"><span style="width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);transition:background 0.2s;background:{{ d.bg }}"></span></sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isSummary }}" hint-placeholder-val="{{ false }}">
+  <div style="position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;padding:24px 24px 56px">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+      <h2 style="margin:0;font-size:clamp(28px,4vw,44px);font-weight:800;letter-spacing:-0.03em;text-align:center">{{ newCountLine }}</h2>
+      <sc-if value="{{ sumShiny }}" hint-placeholder-val="{{ false }}"><span style="padding:5px 12px;border-radius:999px;font-size:13px;font-weight:800;color:#1a1215;background:linear-gradient(90deg,#ff7ab6,#ffd36e,#7dffb0,#7ab8ff)">{{ sumShiny }}</span></sc-if>
+    </div>
+    <div ref="{{ refs.sum }}" style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;max-width:1160px">
+      <sc-for list="{{ sumCards }}" as="item" hint-placeholder-count="5"><div onClick="{{ item.open }}" style="cursor:pointer;transition:transform 0.15s" style-hover="transform:translateY(-8px)"><dc-import name="MMCard" card="{{ item.v }}" w="200" holo="{{ item.holo }}" hint-size="200px,280px"></dc-import></div></sc-for>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+      <sc-if value="{{ canAgain }}" hint-placeholder-val="{{ true }}"><button onClick="{{ again }}" style="padding:16px 28px;border-radius:14px;border:none;background:var(--accent);color:#fff;font-size:17px;font-weight:800;cursor:pointer" style-hover="background:var(--accent-deep)">{{ t.packs.openAnother }}</button></sc-if>
+      <button onClick="{{ closeOverlay }}" style="padding:16px 28px;border-radius:14px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#f4f0f1;font-size:17px;font-weight:700;cursor:pointer" style-hover="background:rgba(255,255,255,0.08)">{{ t.close }}</button>
+    </div>
+  </div>
+  </sc-if>
+  <div ref="{{ refs.flash }}" style="position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:60"></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasModal }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Card detail" onClick="{{ closeModal }}" style="position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);display:grid;place-items:center;padding:24px;overflow:auto">
+  <div ref="{{ refs.modal }}" onClick="{{ stop }}" lang="{{ m.lang }}" style="width:100%;max-width:880px;border-radius:26px;background:var(--surface);color:var(--text);border:1px solid var(--line);padding:32px;box-sizing:border-box;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:36px;align-items:start">
+    <div style="display:flex;justify-content:center"><dc-import name="MMCard" card="{{ m }}" w="300" holo="{{ mHolo }}" hint-size="300px,420px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted)">{{ m.num }}</span>
+        <span style="display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;border:1px solid;border-color:{{ mCol }};color:{{ mCol }}"><span style="width:8px;height:8px;transform:rotate(45deg);background:{{ mCol }}"></span>{{ m.rarityLabel }}</span>
+      </div>
+      <h2 style="margin:0;font-size:36px;font-weight:800;letter-spacing:-0.03em;line-height:1.05;text-wrap:balance">{{ mTitle }}</h2>
+      <sc-if value="{{ m.desc }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:18px;font-style:italic;color:var(--muted);line-height:1.4">{{ m.desc }}</p></sc-if>
+      <sc-if value="{{ mShownIn }}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:14px;padding:10px 14px;border-radius:12px;background:var(--surface2);color:var(--muted)">{{ mShownIn }}</p></sc-if>
+      <sc-if value="{{ mNotOwned }}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:15px;font-weight:700">{{ t.card.notOwned }}</p></sc-if>
+      <p style="margin:0;font-size:15px;line-height:1.5">{{ mOwned }}</p>
+      <sc-if value="{{ mShiny }}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:14px;font-weight:700">{{ mShiny }}</p></sc-if>
+      <sc-if value="{{ mIcd }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:15px"><span style="color:var(--muted)">{{ t.card.icd10 }} :</span> <span style="font-family:'JetBrains Mono',monospace">{{ mIcd }}</span></p></sc-if>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px">
+        <a href="{{ mUrl }}" target="_blank" rel="noreferrer" style="font-weight:700;font-size:16px;text-decoration:none">{{ t.card.readOnWikipedia }}</a>
+        <button onClick="{{ closeModal }}" style="margin-left:auto;padding:12px 22px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--text);font-size:15px;font-weight:700;cursor:pointer">{{ t.close }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<div ref="{{ refs.notices }}" role="status" aria-live="polite" style="position:fixed;top:76px;right:20px;z-index:90;display:flex;flex-direction:column;gap:10px;width:min(370px,calc(100vw - 40px));pointer-events:none">
+  <sc-for list="{{ notices }}" as="n" hint-placeholder-count="0">
+    <div data-nid="{{ n.id }}" style="pointer-events:auto;position:relative;overflow:hidden;display:flex;gap:12px;align-items:flex-start;padding:14px 12px 17px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:0 20px 44px -20px rgba(0,0,0,0.5);color:var(--text)">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+        <strong style="font-size:15px;line-height:1.35;font-weight:700">{{ n.text }}</strong>
+        <sc-if value="{{ n.detail }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--muted);line-height:1.4">{{ n.detail }}</span></sc-if>
+      </div>
+      <button onClick="{{ n.dismiss }}" aria-label="{{ t.close }}" style="width:28px;height:28px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;flex:none" style-hover="background:var(--surface2);color:var(--text)">×</button>
+      <span data-bar="1" style="position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--accent);transform-origin:left"></span>
+    </div>
+  </sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;locale&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;fr&quot;,&quot;en&quot;,&quot;zh&quot;],&quot;default&quot;:&quot;fr&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;packs&quot;,&quot;collection&quot;,&quot;history&quot;,&quot;leaderboard&quot;,&quot;profile&quot;,&quot;login&quot;],&quot;default&quot;:&quot;packs&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;bestCard&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;cycle&quot;,&quot;random&quot;,&quot;legendary&quot;,&quot;epic&quot;,&quot;rare&quot;],&quot;default&quot;:&quot;cycle&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Pack demo&quot;},&quot;shinyDemo&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Pack demo&quot;},&quot;flipMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:150,&quot;max&quot;:800,&quot;step&quot;:50,&quot;unit&quot;:&quot;ms&quot;,&quot;default&quot;:300,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Pack demo&quot;},&quot;discordEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Discord &amp; notices demo&quot;},&quot;discordState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;unlinked&quot;,&quot;code&quot;,&quot;linked&quot;],&quot;default&quot;:&quot;unlinked&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Discord &amp; notices demo&quot;},&quot;noticeDemo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;packsGranted&quot;,&quot;packsRefilled&quot;,&quot;cardGranted&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Discord &amp; notices demo&quot;}}">
+const RAR_DESC = ['LEGENDARY', 'EPIC', 'RARE', 'UNCOMMON', 'COMMON'];
+const RANK = { COMMON: 0, UNCOMMON: 1, RARE: 2, EPIC: 3, LEGENDARY: 4 };
+const PTS = { COMMON: 1, UNCOMMON: 3, RARE: 10, EPIC: 30, LEGENDARY: 100 };
+const TOTALS = { LEGENDARY: 120, EPIC: 480, RARE: 1200, UNCOMMON: 3000, COMMON: 7200 };
+const MAX = 10, INTERVAL = 600;
+const COL = { COMMON: 'var(--r-common)', UNCOMMON: 'var(--r-uncommon)', RARE: 'var(--r-rare)', EPIC: 'var(--r-epic)', LEGENDARY: 'var(--r-legendary)' };
+const HEX = { COMMON: '#a39b8f', UNCOMMON: '#86a95f', RARE: '#5f95d6', EPIC: '#b07ee0', LEGENDARY: '#f0b429' };
+
+const DICT = {
+  fr: {
+    languageName: 'Français', appName: 'Maladie Masters',
+    tagline: 'Collectionne toutes les maladies de Wikipédia. Plus elle est lue, plus elle est rare.',
+    signInWithGoogle: 'Se connecter avec Google', signOut: 'Déconnexion', close: 'Fermer', language: 'Langue',
+    nav: { packs: 'Paquets', collection: 'Collection', leaderboard: 'Classement' },
+    rarity: { COMMON: 'Commune', UNCOMMON: 'Peu commune', RARE: 'Rare', EPIC: 'Épique', LEGENDARY: 'Légendaire' },
+    packs: {
+      available: (c) => `${c} paquet${c > 1 ? 's' : ''} disponible${c > 1 ? 's' : ''}`,
+      timer: (n, m) => `${n}/${m} de la minuterie`, bonus: (c) => ` + ${c} bonus`,
+      nextIn: 'Prochain paquet dans',
+      full: (m) => `Stock plein : un paquet toutes les ${m} min dès que tu en ouvres un.`,
+      open: 'Ouvrir un paquet', openAnother: 'Ouvrir un autre paquet', opening: 'Ouverture…',
+      tapToReveal: 'Touche le paquet pour retourner la carte suivante',
+      remaining: (c) => `${c} carte${c > 1 ? 's' : ''} restante${c > 1 ? 's' : ''}`,
+      revealAll: 'Tout révéler',
+      newCount: (f, t) => f === 0 ? `Aucune nouvelle carte sur ${t}.` : `${f} nouvelle${f > 1 ? 's' : ''} carte${f > 1 ? 's' : ''} sur ${t} !`,
+      progress: 'Progression',
+      summary: (o, t, p, s) => `${o} / ${t} cartes (${p} %) · score ${s}`,
+    },
+    card: {
+      new: 'NOUVEAU', icd10: 'CIM-10', readOnWikipedia: 'Lire sur Wikipédia ↗',
+      owned: (q, o, r) => `Possédée : ×${q} · ${o} joueurs l'ont · rang de popularité #${r}`,
+      shownIn: (l) => `Pas d'article dans ta langue : affichée en ${l}.`,
+    },
+    collection: { owned: 'Possédées', missing: 'Manquantes', all: 'Toutes', shiny: 'Shiny', allRarities: 'Toutes les raretés', search: 'Rechercher…', count: (t) => `${t} cartes` },
+    leaderboard: { title: 'Classement', scoring: 'Score : Commune 1, Peu commune 3, Rare 10, Épique 30, Légendaire 100 points par carte distincte.', anonymous: 'Anonyme', entry: (s, c) => `${s} pts (${c} cartes)` },
+    ui: { theme: 'Thème', views: 'vues', thumb: 'vignette Wikimedia', last: 'Dernier paquet', history: 'Historique', profile: 'Profil', sortBy: 'Trier', sorts: { number: 'Numéro', name: 'Nom', rarity: 'Rareté', popularity: 'Popularité', recent: 'Récentes' }, natural: 'Minuterie', bonus: 'Bonus', displayName: 'Pseudo', save: 'Enregistrer', saved: 'Enregistré', light: 'Clair', dark: 'Sombre', you: 'toi', copies: 'Exemplaires', distinct: 'Cartes distinctes', score: 'Score', shinyOwned: 'Shiny', memberSince: 'Membre depuis' },
+  },
+  en: {
+    languageName: 'English', appName: 'Maladie Masters',
+    tagline: 'Collect every disease on Wikipedia. The more it is read about, the rarer it is.',
+    signInWithGoogle: 'Sign in with Google', signOut: 'Sign out', close: 'Close', language: 'Language',
+    nav: { packs: 'Packs', collection: 'Collection', leaderboard: 'Leaderboard' },
+    rarity: { COMMON: 'Common', UNCOMMON: 'Uncommon', RARE: 'Rare', EPIC: 'Epic', LEGENDARY: 'Legendary' },
+    packs: {
+      available: (c) => `${c} pack${c === 1 ? '' : 's'} available`,
+      timer: (n, m) => `${n}/${m} from the timer`, bonus: (c) => ` + ${c} bonus`,
+      nextIn: 'Next pack in',
+      full: (m) => `Stock full: one pack every ${m} min as soon as you open one.`,
+      open: 'Open a pack', openAnother: 'Open another pack', opening: 'Opening…',
+      tapToReveal: 'Tap the pack to turn the next card',
+      remaining: (c) => `${c} card${c === 1 ? '' : 's'} left`,
+      revealAll: 'Reveal all',
+      newCount: (f, t) => f === 0 ? `No new card out of ${t}.` : `${f} new card${f === 1 ? '' : 's'} out of ${t}!`,
+      progress: 'Progress',
+      summary: (o, t, p, s) => `${o} / ${t} cards (${p}%) · score ${s}`,
+    },
+    card: {
+      new: 'NEW', icd10: 'ICD-10', readOnWikipedia: 'Read on Wikipedia ↗',
+      owned: (q, o, r) => `Owned: ×${q} · ${o} players have it · popularity rank #${r}`,
+      shownIn: (l) => `No article in your language: shown in ${l}.`,
+    },
+    collection: { owned: 'Owned', missing: 'Missing', all: 'All', shiny: 'Shiny', allRarities: 'All rarities', search: 'Search…', count: (t) => `${t} cards` },
+    leaderboard: { title: 'Leaderboard', scoring: 'Score: Common 1, Uncommon 3, Rare 10, Epic 30, Legendary 100 points per distinct card.', anonymous: 'Anonymous', entry: (s, c) => `${s} pts (${c} cards)` },
+    ui: { theme: 'Theme', views: 'views', thumb: 'Wikimedia thumbnail', last: 'Last pack', history: 'History', profile: 'Profile', sortBy: 'Sort', sorts: { number: 'Number', name: 'Name', rarity: 'Rarity', popularity: 'Popularity', recent: 'Recent' }, natural: 'Timer', bonus: 'Bonus', displayName: 'Display name', save: 'Save', saved: 'Saved', light: 'Light', dark: 'Dark', you: 'you', copies: 'Copies', distinct: 'Distinct cards', score: 'Score', shinyOwned: 'Shiny', memberSince: 'Member since' },
+  },
+  zh: {
+    languageName: '中文', appName: 'Maladie Masters',
+    tagline: '收集维基百科上的所有疾病。被阅读得越多，卡牌越稀有。',
+    signInWithGoogle: '使用 Google 登录', signOut: '退出登录', close: '关闭', language: '语言',
+    nav: { packs: '卡包', collection: '收藏', leaderboard: '排行榜' },
+    rarity: { COMMON: '普通', UNCOMMON: '罕见', RARE: '稀有', EPIC: '史诗', LEGENDARY: '传说' },
+    packs: {
+      available: (c) => `可开启 ${c} 个卡包`,
+      timer: (n, m) => `计时器 ${n}/${m}`, bonus: (c) => ` + ${c} 个奖励`,
+      nextIn: '下一个卡包：',
+      full: (m) => `库存已满：开启一个后，每 ${m} 分钟获得一个卡包。`,
+      open: '开启卡包', openAnother: '再开一个卡包', opening: '开启中…',
+      tapToReveal: '点击卡包翻开下一张卡牌',
+      remaining: (c) => `还剩 ${c} 张`,
+      revealAll: '全部翻开',
+      newCount: (f, t) => f === 0 ? `${t} 张中没有新卡牌。` : `${t} 张中有 ${f} 张新卡牌！`,
+      progress: '进度',
+      summary: (o, t, p, s) => `${o} / ${t} 张卡牌（${p}%）· 积分 ${s}`,
+    },
+    card: {
+      new: '新', icd10: 'ICD-10', readOnWikipedia: '在维基百科上阅读 ↗',
+      owned: (q, o, r) => `拥有：×${q} · ${o} 名玩家拥有 · 热度排名 #${r}`,
+      shownIn: (l) => `您的语言中没有该条目：以${l}显示。`,
+    },
+    collection: { owned: '已拥有', missing: '未拥有', all: '全部', shiny: '闪卡', allRarities: '全部稀有度', search: '搜索…', count: (t) => `${t} 张卡牌` },
+    leaderboard: { title: '排行榜', scoring: '积分：每张不同的卡牌，普通 1 分，罕见 3 分，稀有 10 分，史诗 30 分，传说 100 分。', anonymous: '匿名', entry: (s, c) => `${s} 分（${c} 张卡牌）` },
+    ui: { theme: '主题', views: '次浏览', thumb: '维基共享资源缩略图', last: '上一个卡包', history: '历史', profile: '个人资料', sortBy: '排序', sorts: { number: '编号', name: '名称', rarity: '稀有度', popularity: '热度', recent: '最近' }, natural: '计时器', bonus: '奖励', displayName: '昵称', save: '保存', saved: '已保存', light: '浅色', dark: '深色', you: '你', copies: '张数', distinct: '不同卡牌', score: '积分', shinyOwned: '闪卡', memberSince: '注册于' },
+  },
+};
+Object.assign(DICT.fr.card, { hidden: '???', notOwned: 'Carte pas encore obtenue.', shiny: 'SHINY', shinyDrawn: 'SHINY !', shinyOwned: (c) => `${c} exemplaire${c > 1 ? 's' : ''} shiny` });
+Object.assign(DICT.en.card, { hidden: '???', notOwned: 'Not collected yet.', shiny: 'SHINY', shinyDrawn: 'SHINY!', shinyOwned: (c) => `${c} shiny cop${c === 1 ? 'y' : 'ies'}` });
+Object.assign(DICT.zh.card, { hidden: '???', notOwned: '尚未获得。', shiny: '闪卡', shinyDrawn: '闪卡！', shinyOwned: (c) => `${c} 张闪卡` });
+DICT.fr.packs.shinyCount = (c) => `${c} shiny`;
+DICT.en.packs.shinyCount = (c) => `${c} shiny`;
+DICT.zh.packs.shinyCount = (c) => `${c} 张闪卡`;
+Object.assign(DICT.fr.nav, { discord: 'Discord' }); Object.assign(DICT.en.nav, { discord: 'Discord' }); Object.assign(DICT.zh.nav, { discord: 'Discord' });
+DICT.fr.notices = { packsGranted: (a) => `🎁 ${a} paquet${a > 1 ? 's' : ''} bonus offert${a > 1 ? 's' : ''} !`, packsRefilled: '🎁 Ton stock de paquets a été rempli !', cardGranted: (n, q, s) => `🎁 Carte offerte : ${n ?? 'une nouvelle carte'}${q > 1 ? ` ×${q}` : ''}${s ? ' ✦' : ''}` };
+DICT.en.notices = { packsGranted: (a) => `🎁 ${a} bonus pack${a > 1 ? 's' : ''} for you!`, packsRefilled: '🎁 Your pack stock was refilled!', cardGranted: (n, q, s) => `🎁 A card for you: ${n ?? 'a new card'}${q > 1 ? ` ×${q}` : ''}${s ? ' ✦' : ''}` };
+DICT.zh.notices = { packsGranted: (a) => `🎁 获赠 ${a} 个奖励卡包！`, packsRefilled: '🎁 你的卡包库存已补满！', cardGranted: (n, q, s) => `🎁 获赠卡牌：${n ?? '一张新卡'}${q > 1 ? ` ×${q}` : ''}${s ? ' ✦' : ''}` };
+DICT.fr.discord = { title: 'Discord', intro: 'Le bot Maladie Masters annonce tes cartes légendaires sur les serveurs Discord où il est installé, en te mentionnant.', disabled: "Le bot Discord n'est pas activé sur ce serveur de jeu.", linkedAs: (u) => `Lié au compte Discord ${u}.`, announce: 'Annoncer mes cartes légendaires', unlink: 'Délier', notLinked: 'Aucun compte Discord lié.', getCode: 'Obtenir un code', newCode: 'Nouveau code', codeHelp: 'Sur Discord, dans un serveur où le bot est installé ou en message privé au bot, tape :', expiresAt: (t) => `Valable jusqu'à ${t}.`, serverTitle: 'Ajouter le bot à un serveur', serverHelp: 'Il faut la permission « Gérer le serveur ». Ensuite, dans chaque salon voulu : /maladie-setup channel. Les légendaires des membres liés y seront annoncées.', invite: 'Ajouter à Discord ↗' };
+DICT.en.discord = { title: 'Discord', intro: 'The Maladie Masters bot announces your legendary cards on the Discord servers that installed it, with a mention.', disabled: 'The Discord bot is not enabled on this game server.', linkedAs: (u) => `Linked to the Discord account ${u}.`, announce: 'Announce my legendary cards', unlink: 'Unlink', notLinked: 'No Discord account linked.', getCode: 'Get a code', newCode: 'New code', codeHelp: 'On Discord, in a server that has the bot or in a DM to the bot, type:', expiresAt: (t) => `Valid until ${t}.`, serverTitle: 'Add the bot to a server', serverHelp: "You need the Manage Server permission. Then, in each channel you want: /maladie-setup channel. Linked members' legendaries will be announced there.", invite: 'Add to Discord ↗' };
+DICT.zh.discord = { title: 'Discord', intro: 'Maladie Masters 机器人会在安装了它的 Discord 服务器上公布你的传说卡牌并提及你。', disabled: '本游戏服务器未启用 Discord 机器人。', linkedAs: (u) => `已绑定 Discord 账号 ${u}。`, announce: '公布我的传说卡牌', unlink: '解绑', notLinked: '未绑定 Discord 账号。', getCode: '获取代码', newCode: '新代码', codeHelp: '在安装了机器人的 Discord 服务器中或私信机器人，输入：', expiresAt: (t) => `有效期至 ${t}。`, serverTitle: '将机器人添加到服务器', serverHelp: '需要“管理服务器”权限。然后在每个目标频道输入：/maladie-setup channel。已绑定成员的传说卡牌将在那里公布。', invite: '添加到 Discord ↗' };
+Object.assign(DICT.fr.ui, { copy: 'Copier', copied: 'Copié', preview: "Aperçu d'une annonce" });
+Object.assign(DICT.en.ui, { copy: 'Copy', copied: 'Copied', preview: 'Announcement preview' });
+Object.assign(DICT.zh.ui, { copy: '复制', copied: '已复制', preview: '公布预览' });
+const ANNOUNCE = {
+  fr: (m, n) => `🏆 ${m} vient de tirer une carte **légendaire** : ${n} !`,
+  en: (m, n) => `🏆 ${m} just drew a **legendary** card: ${n}!`,
+  zh: (m, n) => `🏆 ${m} 抽到了一张**传说**卡牌：${n}！`,
+};
+const COMMANDS = [
+  ['/maladie link code:', { fr: 'Lier ton compte Discord avec le code affiché sur le site', en: 'Link your Discord account with the code shown on the site', zh: '用网站上显示的代码绑定你的 Discord 账号' }],
+  ['/maladie unlink', { fr: 'Ne plus annoncer tes tirages', en: 'Stop announcing your drops', zh: '不再公布你的抽卡' }],
+  ['/maladie-setup channel', { fr: 'Annoncer les cartes légendaires des membres dans un salon', en: "Announce members' legendary cards in a channel", zh: '在一个频道公布成员的传说卡牌' }],
+  ['/maladie-setup off', { fr: 'Arrêter les annonces dans un salon, ou dans tous', en: 'Stop announcing in a channel, or in all of them', zh: '停止在某个频道或所有频道公布' }],
+  ['/maladie-setup list', { fr: 'Voir les salons où sont faites les annonces', en: 'Show the channels announcements go to', zh: '查看公布的频道' }],
+];
+const newCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const g = () => Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join(''); return g() + '-' + g(); };
+HEX.SHINY = '#ff7ab6';
+const LB = [['Mathilde R.', 12450], ['Kenji', 11980], ['Inès', 10870], [null, 9920], ['Paul-Henri', 9310], ['Yuna', 8770], ['Hugo', 8240], ['Sara', 7690], ['Wei', 7105], ['Nora', 6620], ['Tom', 5980], ['Lucie', 5530], [null, 5210], ['Arthur', 4870]];
+const SEED_BEST = ['RARE', 'EPIC', 'RARE', 'RARE', 'LEGENDARY'];
+
+const C = (id, n, r, v, icd, fr, en, zh, q, o) => ({ id, n, r, v, icd, fr, en, zh, q, o });
+const CARDS = [
+  C('tb', 3, 'LEGENDARY', 2410000, 'A15–A19', ['Tuberculose', 'maladie infectieuse due à Mycobacterium tuberculosis'], ['Tuberculosis', 'infectious disease caused by Mycobacterium tuberculosis'], ['结核病', '由结核分枝杆菌引起的传染病'], 1, 214),
+  C('scz', 5, 'LEGENDARY', 2080000, 'F20', ['Schizophrénie', 'trouble psychiatrique chronique'], ['Schizophrenia', 'chronic mental disorder'], ['思觉失调症', '慢性精神障碍'], 1, 188),
+  C('lep', 9, 'LEGENDARY', 1320000, 'A30', ['Lèpre', 'maladie infectieuse chronique due à Mycobacterium leprae'], ['Leprosy', 'chronic infection caused by Mycobacterium leprae'], ['麻风病', '由麻风分枝杆菌引起的慢性感染'], 1, 201),
+  C('acro', 118, 'EPIC', 412000, 'E22.0', ['Acromégalie', "maladie due à un excès d'hormone de croissance"], ['Acromegaly', 'disorder caused by excess growth hormone'], ['肢端肥大症', '生长激素过多引起的疾病'], 1, 903),
+  C('narco', 141, 'EPIC', 388000, 'G47.4', ['Narcolepsie', 'trouble neurologique du sommeil'], ['Narcolepsy', 'chronic neurological sleep disorder'], ['发作性睡病', '慢性神经系统睡眠障碍'], 2, 877),
+  C('marfan', 402, 'RARE', 151000, 'Q87.4', ['Syndrome de Marfan', 'maladie génétique du tissu conjonctif'], ['Marfan syndrome', 'genetic disorder of connective tissue'], ['马凡氏综合征', '结缔组织遗传性疾病'], 1, 2410),
+  C('lassa', 517, 'RARE', 122000, 'A96.2', ['Fièvre de Lassa', 'fièvre hémorragique virale'], ['Lassa fever', 'viral hemorrhagic fever'], ['拉沙热', '病毒性出血热'], 3, 2380),
+  C('meniere', 560, 'RARE', 109000, 'H81.0', ['Maladie de Ménière', "maladie de l'oreille interne"], ["Ménière's disease", 'disorder of the inner ear'], ['梅尼尔氏症', '内耳疾病'], 1, 2302),
+  C('kerato', 1904, 'UNCOMMON', 41200, 'H18.6', ['Kératocône', 'déformation progressive de la cornée'], ['Keratoconus', 'progressive thinning of the cornea'], ['圆锥角膜', '角膜进行性变薄'], 2, 5120),
+  C('hs', 2211, 'UNCOMMON', 36800, 'L73.2', ['Hidradénite suppurée', 'maladie inflammatoire chronique de la peau'], ['Hidradenitis suppurativa', 'chronic inflammatory skin disease'], ['化脓性汗腺炎', '慢性炎症性皮肤病'], 1, 4988),
+  C('mecfs', 1650, 'UNCOMMON', 48900, 'G93.3', ['Encéphalomyélite myalgique/syndrome de fatigue chronique', 'maladie chronique multisystémique'], ['Myalgic encephalomyelitis/chronic fatigue syndrome', 'long-term multisystem illness'], ['肌痛性脑脊髓炎', '长期多系统疾病'], 1, 5302),
+  C('hetero', 7842, 'COMMON', 3100, 'O00', ['Grossesse hétérotopique', 'grossesse intra- et extra-utérine simultanée'], ['Heterotopic pregnancy', 'simultaneous intrauterine and ectopic pregnancy'], null, 1, 9410),
+  C('ocd', 6120, 'COMMON', 4900, 'M93.2', ['Ostéochondrite disséquante', "affection articulaire du cartilage et de l'os"], ['Osteochondritis dissecans', 'joint disorder of cartilage and bone'], ['剥脱性骨软骨炎', '软骨与骨的关节疾病'], 2, 9102),
+  C('pilo', 5480, 'COMMON', 5600, 'L05', ['Kyste pilonidal', 'infection cutanée du sillon interfessier'], ['Pilonidal disease', 'skin infection near the tailbone'], ['藏毛窦', '尾骨附近的皮肤感染'], 3, 9688),
+  C('gilbert', 4970, 'COMMON', 6300, 'E80.4', ['Syndrome de Gilbert', 'trouble héréditaire bénin du foie'], ["Gilbert's syndrome", 'mild inherited liver condition'], ['吉尔伯特综合征', '轻度遗传性肝脏疾病'], 1, 9840),
+  C('chalazion', 6700, 'COMMON', 4400, 'H00.1', ['Chalazion', 'kyste de la paupière'], ['Chalazion', 'cyst in the eyelid'], ['霰粒肿', '眼睑囊肿'], 4, 9921),
+  C('tietze', 8310, 'COMMON', 2700, 'M94.0', ['Syndrome de Tietze', 'inflammation des cartilages costaux'], ['Tietze syndrome', 'inflammation of the costal cartilages'], null, 1, 9015),
+];
+['scz', 'narco', 'meniere', 'tietze', 'hs'].forEach((id) => { CARDS.find((c) => c.id === id).q = 0; });
+const byR = (r) => CARDS.filter((c) => c.r === r);
+const pick = (a, n) => [...a].sort(() => Math.random() - 0.5).slice(0, n);
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const p = props || {};
+    this.state = {
+      screen: (p.startScreen === 'discord' ? 'profile' : p.startScreen) || 'packs', theme: p.theme || 'dark', locale: p.locale || 'fr',
+      natural: 7, bonus: 1, secs: 402, phase: 'idle', pack: null, revealed: 0,
+      modal: null, last: null, cycle: 0,
+      prog: { LEGENDARY: 3, EPIC: 21, RARE: 140, UNCOMMON: 610, COMMON: 2104 },
+      qty: Object.fromEntries(CARDS.map((c) => [c.id, c.q])), shiny: { tb: 1 }, lastAt: {},
+      cOwned: 'all', cRarity: '', cSearch: '', cSort: 'number', cPage: 1,
+      displayName: 'Camille', nameDraft: 'Camille', saved: false,
+      dState: p.discordState || 'unlinked', dAnnounce: true, dCode: 'K7PQ-3MZA', dExpiresAt: Date.now() + 15 * 60000, dCopied: false,
+      notices: [],
+    };
+    const q0 = this.state.qty;
+    this.state.history = SEED_BEST.map((b, k) => ({ ...this.genPack(b, q0, false), id: 'h' + k, at: new Date(Date.now() - (k + 1) * 47 * 60000 - k * 3 * 3600000), source: k === 2 ? 'BONUS' : 'NATURAL' }));
+    this.state.history.forEach((h) => h.cards.forEach((e) => { e.isNew = false; }));
+    this.r = {};
+    this.refs_ = {};
+    ['dpanel', 'pulse', 'notices', 'pack', 'dim', 'rays', 'glow', 'ring1', 'ring2', 'card', 'stamp', 'fx', 'sglow', 'stack', 'flash', 'sum', 'modal'].forEach((k) => { this.refs_[k] = (el) => { this.r[k] = el; }; });
+    this.locked = false;
+  }
+  componentDidMount() {
+    this.applyTheme();
+    { const s = this.state; this._prev = { theme: s.theme, phase: s.phase, modal: s.modal, notices: s.notices, dOpen: s.dOpen }; }
+    this.iv = setInterval(() => this.tick(), 1000);
+    this.onKey = (e) => {
+      if (e.key === 'Escape' && this.state.modal) return this.setState({ modal: null });
+      if (this.state.modal) return;
+      if ((e.key === ' ' || e.key === 'Enter') && this.state.phase === 'reveal') { e.preventDefault(); this.flip(); }
+    };
+    window.addEventListener('keydown', this.onKey);
+    this.demoT = setTimeout(() => { this.setState((s) => ({ bonus: s.bonus + 2 })); this.pushNotice('packsGranted', [2], "Merci d'avoir signalé un bug !"); }, 1600);
+    this.startPulse();
+  }
+  startPulse() { if (this.r.pulse && !this.r.pulse.getAnimations().length) this.r.pulse.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0.25, transform: 'scale(1.8)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 1400, iterations: Infinity }); }
+  pushNotice(kind, args, detail) {
+    const id = Date.now() + Math.random();
+    this.setState((s) => ({ notices: [...s.notices, { id, kind, args, detail }] }));
+    setTimeout(() => this.dismiss(id), 10000);
+  }
+  dismiss(id) {
+    const el = this.r.notices && this.r.notices.querySelector(`[data-nid="${id}"]`);
+    const drop = () => this.setState((s) => ({ notices: s.notices.filter((n) => n.id !== id) }));
+    if (el && el.animate) el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(40px)' }], { duration: 180, easing: 'ease-in', fill: 'forwards' }).onfinish = drop; else drop();
+  }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.demoT); clearTimeout(this.linkT); clearTimeout(this.adv); window.removeEventListener('keydown', this.onKey); }
+  componentDidUpdate(pp0) {
+    const pp = pp0 || {};
+    const ps = this._prev || this.state;
+    const p = this.props || {};
+    if ((pp.theme !== p.theme) && p.theme) this.setState({ theme: p.theme });
+    if (pp && (pp.locale !== p.locale) && p.locale) this.setState({ locale: p.locale });
+    if (pp && (pp.startScreen !== p.startScreen) && p.startScreen) this.setState({ screen: p.startScreen === 'discord' ? 'profile' : p.startScreen });
+    if (ps.theme !== this.state.theme) this.applyTheme();
+    if (pp && pp.discordState !== p.discordState && p.discordState) this.setState({ dState: p.discordState });
+    if (pp && pp.noticeDemo !== p.noticeDemo && p.noticeDemo) {
+      if (p.noticeDemo === 'packsGranted') { this.setState((s) => ({ bonus: s.bonus + 3 })); this.pushNotice('packsGranted', [3]); }
+      if (p.noticeDemo === 'packsRefilled') { this.setState({ natural: MAX, secs: null }); this.pushNotice('packsRefilled', []); }
+      if (p.noticeDemo === 'cardGranted') { this.setState((s) => ({ qty: { ...s.qty, narco: (s.qty.narco || 0) + 1 } })); this.pushNotice('cardGranted', ['narco', 1, false]); }
+    }
+    this.startPulse();
+    if (this.state.notices.length > ps.notices.length && this.r.notices) {
+      const fresh = this.state.notices.filter((n) => !ps.notices.some((o) => o.id === n.id));
+      fresh.forEach((n) => {
+        const el = this.r.notices.querySelector(`[data-nid="${n.id}"]`);
+        if (!el) return;
+        el.animate([{ opacity: 0, transform: 'translateX(60px) scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.2,.9,.25,1.1)' });
+        const bar = el.querySelector('[data-bar]');
+        if (bar) bar.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: 10000, easing: 'linear', fill: 'forwards' });
+      });
+    }
+    if (ps.phase !== 'summary' && this.state.phase === 'summary' && this.r.sum) {
+      [...this.r.sum.children].forEach((el, i) => el.animate([{ opacity: 0, transform: 'translateY(40px) scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 320, delay: i * 60, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' }));
+    }
+    if (!ps.dOpen && this.state.dOpen && this.r.dpanel) this.r.dpanel.animate([{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }], { duration: 180, easing: 'ease-out' });
+    if (!ps.modal && this.state.modal && this.r.modal) {
+      this.r.modal.animate([{ opacity: 0, transform: 'translateY(12px) scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    }
+    const s = this.state; this._prev = { theme: s.theme, phase: s.phase, modal: s.modal, notices: s.notices, dOpen: s.dOpen };
+  }
+  applyTheme() { document.documentElement.setAttribute('data-mm-theme', this.state.theme); }
+  tick() {
+    this.setState((s) => {
+      if (s.secs == null) return null;
+      if (s.secs > 1) return { secs: s.secs - 1 };
+      const natural = Math.min(MAX, s.natural + 1);
+      return { natural, secs: natural >= MAX ? null : INTERVAL };
+    });
+  }
+  ms() { return Number((this.props || {}).flipMs) || 300; }
+  bestRarity() {
+    const mode = (this.props || {}).bestCard || 'cycle';
+    if (mode === 'cycle') { const seq = ['LEGENDARY', 'EPIC', 'RARE']; const r = seq[this.state.cycle % 3]; this.setState((s) => ({ cycle: s.cycle + 1 })); return r; }
+    if (mode === 'random') { const x = Math.random(); return x < 1 / 60 ? 'LEGENDARY' : x < 1 / 7 ? 'EPIC' : 'RARE'; }
+    return mode.toUpperCase();
+  }
+  genPack(best, qty, shinyBest) {
+    const cards = [...pick(byR('COMMON'), 3), ...pick(byR('UNCOMMON'), 1), ...pick(byR(best), 1)];
+    return { id: Date.now(), cards: cards.map((c, i) => ({ slot: i, c, isNew: !qty[c.id], isShiny: !!shinyBest && i === 4 })) };
+  }
+  view(c, isNew, o = {}) {
+    const L = this.state.locale, t = DICT[L];
+    const loc = c[L] ? L : 'en';
+    const [name, desc] = c[loc];
+    const base = {
+      id: c.id, rarity: c.r, num: '#' + String(c.n).padStart(4, '0'), name, desc, lang: loc,
+      langBadge: loc !== L ? loc.toUpperCase() : '', rarityLabel: t.rarity[c.r],
+      views: new Intl.NumberFormat(L === 'zh' ? 'zh-CN' : L, { notation: 'compact', maximumFractionDigits: 1 }).format(c.v) + ' ' + t.ui.views,
+      isNew: !!isNew, newLabel: t.card.new, thumb: t.ui.thumb,
+      isShiny: !!o.shiny, shinyLabel: '✦ ' + t.card.shiny, qtyLabel: o.qty > 1 ? '×' + o.qty : '',
+    };
+    if (o.hidden) Object.assign(base, { hidden: true, name: t.card.hidden, desc: '', views: '', langBadge: '', thumb: '', isShiny: false, qtyLabel: '' });
+    return base;
+  }
+  open() {
+    const s = this.state;
+    if (s.natural + s.bonus === 0 || s.phase !== 'idle') return;
+    const el = this.r.pack;
+    const go = () => this.startPack();
+    if (el && el.animate) {
+      const a = el.animate([{ transform: 'none' }, { transform: 'rotate(-4deg) scale(1.04)' }, { transform: 'rotate(4deg) scale(1.06)' }, { transform: 'rotate(-2deg) scale(1.1)' }, { transform: 'translateY(-30px) scale(1.25)', opacity: 0 }], { duration: 380, easing: 'ease-in' });
+      a.onfinish = go;
+    } else go();
+  }
+  startPack() {
+    this.resetFx();
+    const best = this.bestRarity();
+    this.setState((s) => {
+      const fromNat = s.natural > 0;
+      return {
+        phase: 'reveal', pack: { ...this.genPack(best, s.qty, (this.props || {}).shinyDemo), source: fromNat ? 'NATURAL' : 'BONUS' }, revealed: 0,
+        natural: fromNat ? s.natural - 1 : s.natural, bonus: fromNat ? s.bonus : s.bonus - 1,
+        secs: fromNat && s.secs == null ? INTERVAL : s.secs,
+      };
+    }, () => {
+      const st = this.r.stack;
+      if (st) st.animate([{ transform: 'translateY(-120px) scale(1.15) rotate(-6deg)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 340, easing: 'cubic-bezier(.2,.9,.25,1.15)' });
+    });
+  }
+  cancelAll(el) { if (el && el.getAnimations) el.getAnimations().forEach((a) => a.cancel()); }
+  resetFx() {
+    ['dim', 'rays', 'glow', 'ring1', 'ring2', 'stamp', 'sglow', 'flash'].forEach((k) => this.cancelAll(this.r[k]));
+    if (this.r.fx) this.r.fx.innerHTML = '';
+  }
+  flip() {
+    const s = this.state;
+    if (s.phase !== 'reveal' || this.locked || !s.pack) return;
+    if (s.revealed >= s.pack.cards.length) return;
+    const next = s.pack.cards[s.revealed].c.r;
+    const isSh = s.pack.cards[s.revealed].isShiny;
+    if (next === 'EPIC' || next === 'LEGENDARY' || isSh) {
+      this.locked = true;
+      this.charge(isSh ? 'SHINY' : next).then(() => { this.locked = false; this.doFlip(next); });
+    } else this.doFlip(next);
+  }
+  charge(r) {
+    const sh = r === 'SHINY', leg = r === 'LEGENDARY' || sh, D = sh ? 1550 : leg ? 1150 : 560, hex = HEX[r];
+    const RB = 'conic-gradient(from 0deg, #ff7ab6, #ffd36e, #7dffb0, #7ab8ff, #c47aff, #ff7ab6)';
+    const amp = sh ? 11 : leg ? 9 : 5, steps = leg ? 18 : 10, kf = [];
+    for (let i = 0; i <= steps; i++) { const a = amp * (i / steps) * (i % 2 ? 1 : -1); kf.push({ transform: `translate(${a}px, ${-a * 0.4}px) rotate(${a * 0.4}deg) scale(${1 + 0.06 * i / steps})` }); }
+    if (this.r.stack) this.r.stack.animate(kf, { duration: D, easing: 'ease-in' });
+    if (this.r.sglow) {
+      this.r.sglow.style.background = sh ? RB : `radial-gradient(circle, ${hex} 0%, transparent 65%)`;
+      this.r.sglow.style.filter = sh ? 'blur(30px)' : 'none';
+      if (sh) this.r.sglow.animate([{ rotate: '0deg' }, { rotate: '360deg' }], { duration: 1200, iterations: Infinity });
+      this.r.sglow.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: leg ? 1 : 0.8, transform: 'scale(1.35)' }], { duration: D, easing: 'ease-in', fill: 'forwards' });
+    }
+    if (this.r.dim) this.r.dim.animate([{ opacity: 0 }, { opacity: leg ? 0.85 : 0.5 }], { duration: D, fill: 'forwards' });
+    if (leg && this.r.rays) {
+      this.r.rays.style.background = sh ? 'repeating-conic-gradient(from 0deg, #ff7ab655 0deg 5deg, transparent 5deg 15deg, #7ab8ff55 15deg 20deg, transparent 20deg 30deg, #ffd36e55 30deg 35deg, transparent 35deg 45deg)' : `repeating-conic-gradient(from 0deg, ${hex}55 0deg 5deg, transparent 5deg 15deg)`;
+      this.r.rays.animate([{ opacity: 0, transform: 'scale(.5) rotate(0deg)' }, { opacity: 0.35, transform: 'scale(.9) rotate(40deg)' }], { duration: D, easing: 'ease-in', fill: 'forwards' });
+      this.sparks(sh ? 22 : 10, sh ? '#ffffff' : hex, D);
+    }
+    return new Promise((res) => setTimeout(res, D));
+  }
+  sparks(n, hex, D) {
+    const fx = this.r.fx; if (!fx) return;
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement('div');
+      const x = 260 + Math.random() * 120, y = (Math.random() - 0.5) * 200;
+      d.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:4px;height:4px;border-radius:50%;background:${hex};box-shadow:0 0 10px ${hex}`;
+      fx.appendChild(d);
+      d.animate([{ opacity: 0, transform: 'translate(0,0)' }, { opacity: 1 }, { opacity: 0, transform: `translate(${-60 - Math.random() * 80}px, ${-80 - Math.random() * 120}px)` }], { duration: D * (0.6 + Math.random() * 0.4), delay: Math.random() * D * 0.4, easing: 'ease-out', fill: 'both' }).onfinish = () => d.remove();
+    }
+  }
+  burst(n, hex, spread) {
+    const fx = this.r.fx; if (!fx) return;
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement('div');
+      const sz = 3 + Math.random() * 7, ang = Math.random() * Math.PI * 2, dist = spread * (0.45 + Math.random() * 0.55);
+      d.style.cssText = `position:absolute;left:0;top:0;width:${sz}px;height:${sz}px;border-radius:${Math.random() < 0.5 ? '50%' : '1px'};background:${i % 4 === 0 ? '#fff' : hex};box-shadow:0 0 12px ${hex}`;
+      fx.appendChild(d);
+      d.animate([{ transform: 'translate(-50%,-50%) scale(1)', opacity: 1 }, { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(0) rotate(${Math.random() * 360}deg)`, opacity: 0 }], { duration: 700 + Math.random() * 600, easing: 'cubic-bezier(.1,.75,.3,1)' }).onfinish = () => d.remove();
+    }
+  }
+  ring(el, hex, scale, dur, delay) {
+    if (!el) return;
+    el.style.borderColor = hex; el.style.boxShadow = `0 0 30px ${hex}, inset 0 0 30px ${hex}`;
+    el.animate([{ opacity: 0.95, transform: 'scale(.4)' }, { opacity: 0, transform: `scale(${scale})` }], { duration: dur, delay, easing: 'cubic-bezier(.15,.7,.3,1)', fill: 'both' });
+  }
+  doFlip(r) {
+    this.resetFx();
+    const S = this.ms(), sh0 = !!(this.state.pack.cards[this.state.revealed] || {}).isShiny, hex = sh0 ? HEX.SHINY : HEX[r];
+    const total = this.state.pack.cards.length;
+    const idx = this.state.revealed + 1;
+    this.setState({ revealed: idx }, () => {
+      const el = this.r.card;
+      const entry0 = this.state.pack.cards[idx - 1];
+      const shiny = !!(entry0 && entry0.isShiny);
+      const leg = r === 'LEGENDARY' || shiny, epic = r === 'EPIC', rare = r === 'RARE';
+      const big = leg || epic;
+      const dur = shiny ? S * 2.2 : leg ? S * 1.9 : epic ? S * 1.5 : rare ? S * 1.15 : S;
+      if (el) el.animate(big
+        ? [{ transform: 'translateX(300px) rotateY(-90deg) scale(.55)', opacity: 0.5 }, { transform: 'translateX(0) rotateY(12deg) scale(1.18)', opacity: 1, offset: 0.6 }, { transform: 'none' }]
+        : [{ transform: 'translateX(300px) rotateY(-90deg) scale(.55)', opacity: 0.6 }, { transform: 'none', opacity: 1 }],
+        { duration: dur, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      if (this.r.dim) this.r.dim.animate([{ opacity: big ? (leg ? 0.85 : 0.5) : 0 }, { opacity: big ? 0.35 : 0 }], { duration: 700, fill: 'forwards' });
+      if (rare || big) {
+        if (this.r.glow) {
+          this.r.glow.style.background = `radial-gradient(circle, ${hex}${leg ? 'aa' : '77'} 0%, transparent 62%)`;
+          this.r.glow.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1.15)', offset: 0.35 }, { opacity: leg ? 0.8 : 0.5, transform: 'scale(1)' }], { duration: dur + 500, fill: 'forwards', easing: 'ease-out' });
+        }
+        this.ring(this.r.ring1, hex, leg ? 4.5 : epic ? 3.2 : 2, leg ? 900 : 700, big ? dur * 0.45 : 0);
+        this.burst(leg ? 46 : epic ? 22 : 8, hex, leg ? 520 : epic ? 360 : 220);
+      }
+      if (big) {
+        if (this.r.flash) this.r.flash.animate([{ opacity: leg ? 0.95 : 0.55 }, { opacity: 0 }], { duration: leg ? 520 : 320, easing: 'ease-out' });
+        if (this.r.stamp) {
+          this.r.stamp.textContent = DICT[this.state.locale].rarity[r];
+          this.r.stamp.style.color = hex; this.r.stamp.style.textShadow = `0 0 24px ${hex}`;
+          this.r.stamp.animate([{ opacity: 0, transform: 'scale(1.8)', letterSpacing: '0.6em' }, { opacity: 1, transform: 'scale(1)', letterSpacing: '0.22em' }], { duration: 420, delay: dur * 0.5, easing: 'cubic-bezier(.2,.9,.2,1.2)', fill: 'both' });
+        }
+      }
+      const entry = this.state.pack.cards[idx - 1];
+      if (entry && entry.isShiny) {
+        ['#ff7ab6', '#ffd36e', '#7dffb0', '#7ab8ff'].forEach((h, k) => setTimeout(() => this.burst(12, h, 460), dur * 0.4 + k * 60));
+        if (this.r.stamp) {
+          this.r.stamp.textContent = `✦ ${DICT[this.state.locale].card.shinyDrawn} ✦`;
+          if (this.r.flash) setTimeout(() => this.r.flash.animate([{ opacity: 0.8, background: '#ffd6ec' }, { opacity: 0 }], { duration: 600, easing: 'ease-out' }), 280);
+          this.ring(this.r.ring1, '#7ab8ff', 5.5, 1100, dur * 0.45);
+          this.r.stamp.style.color = '#fff'; this.r.stamp.style.textShadow = '0 0 18px #ff7ab6, 0 0 36px #7ab8ff';
+          if (!big) this.r.stamp.animate([{ opacity: 0, transform: 'scale(1.8)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 420, delay: dur * 0.5, easing: 'cubic-bezier(.2,.9,.2,1.2)', fill: 'both' });
+        }
+      }
+      if (leg) {
+        this.ring(this.r.ring2, '#fff', 3.2, 1100, dur * 0.55);
+        setTimeout(() => this.burst(26, '#ffe08a', 420), dur * 0.5);
+        if (this.r.rays) this.r.rays.animate([{ opacity: 0.6, transform: 'scale(1) rotate(0deg)' }, { opacity: 0.6, transform: 'scale(1) rotate(360deg)' }], { duration: 16000, iterations: Infinity });
+      }
+      if (idx >= total) {
+        clearTimeout(this.adv);
+        this.adv = setTimeout(() => this.toSummary(), shiny ? 3000 : leg ? 2600 : epic ? 2000 : 1100);
+      }
+    });
+  }
+  toSummary() {
+    clearTimeout(this.adv);
+    this.locked = false;
+    this.resetFx();
+    this.setState((s) => {
+      if (!s.pack) return null;
+      if (this.r.sglow) this.r.sglow.style.filter = 'none';
+      if (s.phase === 'summary') return null;
+      const prog = { ...s.prog }, qty = { ...s.qty }, shiny = { ...s.shiny }, lastAt = { ...s.lastAt };
+      const now = Date.now();
+      s.pack.cards.forEach((e) => {
+        if (e.isNew) prog[e.c.r] += 1;
+        qty[e.c.id] = (qty[e.c.id] || 0) + 1; lastAt[e.c.id] = now;
+        if (e.isShiny) shiny[e.c.id] = (shiny[e.c.id] || 0) + 1;
+      });
+      return { phase: 'summary', revealed: s.pack.cards.length, prog, qty, shiny, lastAt, last: s.pack, history: [{ ...s.pack, at: new Date() }, ...s.history] };
+    });
+  }
+  renderVals() {
+    const s = this.state, L = s.locale, t = DICT[L];
+    const avail = s.natural + s.bonus;
+    const pack = s.pack;
+    const cur = pack && s.revealed > 0 ? pack.cards[s.revealed - 1] : null;
+    const remaining = pack ? pack.cards.length - s.revealed : 0;
+    const clock = s.secs == null ? '' : `${Math.floor(s.secs / 60)}:${String(s.secs % 60).padStart(2, '0')}`;
+    const owned = Object.values(s.prog).reduce((a, b) => a + b, 0);
+    const catalog = Object.values(TOTALS).reduce((a, b) => a + b, 0);
+    const score = RAR_DESC.reduce((a, r) => a + s.prog[r] * PTS[r], 0);
+    const ui = t.ui;
+    const mc = s.modal ? CARDS.find((c) => c.id === s.modal.id) : null;
+    const mq = mc ? s.qty[mc.id] || 0 : 0;
+    const msh = mc ? s.shiny[mc.id] || 0 : 0;
+    const mv = mc ? this.view(mc, s.modal.isNew, { hidden: mq === 0, shiny: msh > 0 }) : {};
+    const mName = mc ? this.view(mc, false).name : '';
+    const openFor = (e) => () => this.setState({ modal: { id: e.c.id, isNew: e.isNew } });
+    const mkList = (p) => (p ? p.cards.map((e) => ({ v: this.view(e.c, e.isNew, { shiny: e.isShiny }), holo: e.c.r === 'LEGENDARY', open: openFor(e) })) : []);
+    const loginV = (id) => this.view(CARDS.find((c) => c.id === id), false);
+    const dName = (c) => (c[L] || c.en)[0];
+    let list = CARDS.filter((c) => {
+      const q = s.qty[c.id] || 0;
+      if (s.cOwned === 'owned' && q === 0) return false;
+      if (s.cOwned === 'missing' && q > 0) return false;
+      if (s.cOwned === 'shiny' && !s.shiny[c.id]) return false;
+      if (s.cRarity && c.r !== s.cRarity) return false;
+      const qs = s.cSearch.trim().toLowerCase();
+      return !qs || [c.fr, c.en, c.zh].some((x) => x && x[0].toLowerCase().includes(qs));
+    });
+    const sorters = {
+      number: (a, b) => a.n - b.n,
+      name: (a, b) => dName(a).localeCompare(dName(b), L),
+      rarity: (a, b) => RANK[b.r] - RANK[a.r] || a.n - b.n,
+      popularity: (a, b) => b.v - a.v,
+      recent: (a, b) => (s.lastAt[b.id] || 0) - (s.lastAt[a.id] || 0) || a.n - b.n,
+    };
+    list = [...list].sort(sorters[s.cSort]);
+    const PAGE = 48, pages = Math.max(1, Math.ceil(list.length / PAGE)), cPage = Math.min(s.cPage, pages);
+    const lbAll = [...LB.map(([n, sc]) => ({ name: n, score: sc, owned: Math.round(sc / 2.35), me: false })), { name: s.displayName, score, owned, me: true }].sort((a, b) => b.score - a.score);
+    const lbView = (e, i) => ({ rank: i + 1, initial: (e.name || '?')[0].toUpperCase(), name: e.name ? (e.me ? `${e.name} (${ui.you})` : e.name) : t.leaderboard.anonymous, entry: t.leaderboard.entry(e.score, e.owned), bg: e.me ? 'color-mix(in oklch, var(--accent) 12%, transparent)' : 'transparent' });
+    const podCol = ['var(--r-legendary)', 'var(--r-epic)', 'var(--r-rare)'];
+    const dtf = new Intl.DateTimeFormat(L === 'zh' ? 'zh-CN' : L, { dateStyle: 'medium', timeStyle: 'short' });
+    const dEn = (this.props || {}).discordEnabled !== false;
+    const ann = ANNOUNCE[L]('\u0001', '\u0002');
+    const tbName = dName(CARDS[0]);
+    const dMsg = [];
+    ann.split('**').forEach((part, i) => part.split(/(\u0001|\u0002)/).forEach((x) => {
+      if (!x) return;
+      if (x === '\u0001') dMsg.push({ text: '@' + s.displayName, fw: 600, fg: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', pad: '0 3px' });
+      else dMsg.push({ text: x === '\u0002' ? tbName : x, fw: i % 2 ? 800 : 400, fg: 'var(--text)', bg: 'transparent', pad: '0' });
+    }));
+    const copies = Object.values(s.qty).reduce((a, b) => a + b, 0) + owned * 2;
+    return {
+      t, ui, refs: this.refs_,
+      isLogin: s.screen === 'login', isApp: s.screen !== 'login', isPacks: s.screen === 'packs',
+      isCollection: s.screen === 'collection', isHistory: s.screen === 'history', isLeaderboard: s.screen === 'leaderboard', isProfile: s.screen === 'profile',
+      navItems: [['packs', t.nav.packs], ['collection', t.nav.collection], ['history', ui.history], ['leaderboard', t.nav.leaderboard]].map(([k, label]) => ({ label, bg: s.screen === k ? 'var(--surface2)' : 'transparent', fg: s.screen === k ? 'var(--text)' : 'var(--muted)', go: () => this.setState({ screen: k }) })),
+      dOpen: !!s.dOpen, dFold: () => this.setState((x) => ({ dOpen: !x.dOpen })), dChevron: s.dOpen ? 'rotate(180deg)' : 'none',
+      dDot: !dEn ? 'var(--line)' : s.dState === 'linked' ? 'var(--r-uncommon)' : s.dState === 'code' ? 'var(--r-legendary)' : 'var(--muted)',
+      dStatusLine: !dEn ? t.discord.disabled : s.dState === 'linked' ? t.discord.linkedAs('camille.md') : t.discord.notLinked,
+      dEnabled: dEn, dDisabled: !dEn, dLinked: s.dState === 'linked', dUnlinked: s.dState !== 'linked', dHasCode: s.dState === 'code',
+      dLinkedAs: t.discord.linkedAs('camille.md'), dAnnounce: s.dAnnounce,
+      dTrack: s.dAnnounce ? 'var(--accent)' : 'var(--line)', dKnob: s.dAnnounce ? '21px' : '3px',
+      dToggle: () => this.setState((x) => ({ dAnnounce: !x.dAnnounce })),
+      dUnlink: () => this.setState({ dState: 'unlinked' }),
+      dCode: s.dCode, dCopyLabel: s.dCopied ? ui.copied : ui.copy,
+      dCopy: () => { try { navigator.clipboard.writeText('/maladie link code:' + s.dCode); } catch (e) {} this.setState({ dCopied: true }); setTimeout(() => this.setState({ dCopied: false }), 1500); },
+      dExpires: t.discord.expiresAt(new Date(s.dExpiresAt).toLocaleTimeString(L === 'zh' ? 'zh-CN' : L, { hour: '2-digit', minute: '2-digit' })),
+      dCodeBtn: s.dState === 'code' ? t.discord.newCode : t.discord.getCode,
+      dGetCode: () => { clearTimeout(this.linkT); this.setState({ dState: 'code', dCode: newCode(), dExpiresAt: Date.now() + 15 * 60000 }); this.linkT = setTimeout(() => { if (this.state.dState === 'code') this.setState({ dState: 'linked' }); }, 9000); },
+      dTime: new Date().toLocaleTimeString(L === 'zh' ? 'zh-CN' : L, { hour: '2-digit', minute: '2-digit' }),
+      dMsg, dCard: this.view(CARDS[0], false),
+      dCommands: COMMANDS.map(([cmd, d]) => ({ cmd, desc: d[L] })),
+      notices: s.notices.map((n) => ({ id: String(n.id), detail: n.detail || '', dismiss: () => this.dismiss(n.id), text: n.kind === 'cardGranted' ? t.notices.cardGranted(dName(CARDS.find((c) => c.id === n.args[0])), n.args[1], n.args[2]) : t.notices[n.kind](...n.args) })),
+      goProfile: () => this.setState({ screen: 'profile' }),
+      initial: (s.displayName || '?')[0].toUpperCase(),
+      avatarRing: s.screen === 'profile' ? 'var(--accent)' : 'transparent',
+      rarityFilters: [{ key: '', label: t.collection.allRarities, col: 'var(--text)', count: `${owned} / ${catalog}`, pct: `${(owned / catalog) * 100}%` }, ...RAR_DESC.map((r) => ({ key: r, label: t.rarity[r], col: COL[r], count: `${s.prog[r]} / ${TOTALS[r]}`, pct: `${Math.max(1.5, (s.prog[r] / TOTALS[r]) * 100)}%` }))].map((x) => ({ ...x, bg: s.cRarity === x.key ? 'var(--surface2)' : 'var(--surface)', border: s.cRarity === x.key ? (x.key ? x.col : 'var(--text)') : 'var(--line)', pick: () => this.setState({ cRarity: x.key, cPage: 1 }) })),
+      ownedTabs: ['owned', 'missing', 'all', 'shiny'].map((k) => ({ label: t.collection[k], bg: s.cOwned === k ? 'var(--surface)' : 'transparent', fg: s.cOwned === k ? 'var(--text)' : 'var(--muted)', sh: s.cOwned === k ? '0 1px 4px rgba(0,0,0,0.18)' : 'none', pick: () => this.setState({ cOwned: k, cPage: 1 }) })),
+      cSearch: s.cSearch, onSearch: (e) => this.setState({ cSearch: e.target.value, cPage: 1 }),
+      cSort: s.cSort, onSort: (e) => this.setState({ cSort: e.target.value }),
+      sortOpts: ['number', 'name', 'rarity', 'popularity', 'recent'].map((v) => ({ v, label: ui.sorts[v] })),
+      countLabel: t.collection.count(String(list.length)),
+      collItems: list.slice((cPage - 1) * PAGE, cPage * PAGE).map((c) => { const q = s.qty[c.id] || 0; return { v: this.view(c, false, { hidden: q === 0, qty: q, shiny: (s.shiny[c.id] || 0) > 0 }), holo: q > 0 && c.r === 'LEGENDARY', open: () => this.setState({ modal: { id: c.id, isNew: false } }) }; }),
+      pageLabel: `${cPage} / ${pages}`, noPrev: cPage <= 1, noNext: cPage >= pages, prevOp: cPage <= 1 ? 0.35 : 1, nextOp: cPage >= pages ? 0.35 : 1,
+      prevPage: () => this.setState({ cPage: Math.max(1, cPage - 1) }), nextPage: () => this.setState({ cPage: Math.min(pages, cPage + 1) }),
+      historyRows: s.history.map((h) => ({ date: dtf.format(h.at), source: h.source === 'BONUS' ? ui.bonus : ui.natural, srcCol: h.source === 'BONUS' ? 'var(--accent)' : 'var(--muted)', newLine: t.packs.newCount(h.cards.filter((e) => e.isNew).length, h.cards.length), cards: mkList(h) })),
+      podium: lbAll.slice(0, 3).map((e, i) => ({ ...lbView(e, i), col: podCol[i], sh: i === 0 ? '0 18px 50px -24px var(--r-legendary)' : 'none' })),
+      lbRows: lbAll.slice(3).map((e, i) => lbView(e, i + 3)),
+      nameDraft: s.nameDraft, onName: (e) => this.setState({ nameDraft: e.target.value, saved: false }),
+      saveLabel: s.saved ? ui.saved : ui.save,
+      saveName: () => { const n = s.nameDraft.trim(); this.setState({ displayName: n || s.displayName, nameDraft: n || s.displayName, saved: true }); },
+      email: 'camille.martin@gmail.com',
+      langOpts: ['fr', 'en', 'zh'].map((l) => ({ name: DICT[l].languageName, code: l.toUpperCase(), border: l === L ? 'var(--accent)' : 'var(--line)', pick: () => this.setState({ locale: l }) })),
+      themeOpts: [['light', ui.light, '#f8f6f6', '#cfc9ca'], ['dark', ui.dark, '#1c1a1b', '#4a4547']].map(([k, label, sw, ink]) => ({ label, sw, ink, border: s.theme === k ? 'var(--accent)' : 'var(--line)', pick: () => this.setState({ theme: k }) })),
+      statTiles: [[ui.distinct, owned], [ui.copies, copies], [ui.shinyOwned, Object.keys(s.shiny).length], [ui.score, score], [ui.memberSince, new Intl.DateTimeFormat(L === 'zh' ? 'zh-CN' : L, { dateStyle: 'medium' }).format(new Date('2026-09-14'))]].map(([label, value]) => ({ label, value: typeof value === 'number' ? new Intl.NumberFormat(L === 'zh' ? 'zh-CN' : L).format(value) : value })),
+      sumShiny: pack && pack.cards.some((e) => e.isShiny) ? t.packs.shinyCount(pack.cards.filter((e) => e.isShiny).length) : '',
+      mNotOwned: !!mc && mq === 0, mShiny: msh > 0 ? t.card.shinyOwned(msh) : '',
+      themeLabel: t.ui.theme,
+      langs: ['fr', 'en', 'zh'].map((l) => ({ label: l === 'zh' ? '中文' : l.toUpperCase(), bg: l === L ? 'var(--text)' : 'transparent', fg: l === L ? 'var(--bg)' : 'var(--muted)', pick: () => this.setState({ locale: l }) })),
+      toggleTheme: () => this.setState((x) => ({ theme: x.theme === 'dark' ? 'light' : 'dark' })),
+      signIn: () => this.setState({ screen: 'packs' }),
+      signOut: () => this.setState({ screen: 'login', phase: 'idle', modal: null }),
+      rarityChips: RAR_DESC.map((r) => ({ col: COL[r], label: t.rarity[r] })),
+      loginA: loginV('acro'), loginB: loginV('tb'), loginC: loginV('marfan'),
+      avail, noPacks: avail === 0, btnOpacity: avail === 0 ? 0.4 : 1, packOpacity: avail === 0 ? 0.35 : 1,
+      stack2: avail > 1, stack3: avail > 2,
+      availLabel: t.packs.available(avail),
+      timerLabel: t.packs.timer(s.natural, MAX) + (s.bonus > 0 ? t.packs.bonus(s.bonus) : ''),
+      pips: Array.from({ length: MAX }, (_, i) => ({ bg: i < s.natural ? 'var(--accent)' : 'transparent' })),
+      hasTimer: s.secs != null, isFull: s.secs == null, clock,
+      timerPct: s.secs == null ? '100%' : `${((INTERVAL - s.secs) / INTERVAL) * 100}%`,
+      fullLabel: t.packs.full(INTERVAL / 60),
+      openLabel: s.last ? t.packs.openAnother : t.packs.open,
+      open: () => this.open(),
+      hasLast: !!s.last && s.phase === 'idle', lastTitle: t.ui.last, lastCards: mkList(s.last),
+      summaryLine: t.packs.summary(owned, catalog, Math.round((owned / catalog) * 1000) / 10, score),
+      progRows: RAR_DESC.map((r) => ({ col: COL[r], label: t.rarity[r], count: `${s.prog[r]} / ${TOTALS[r]}`, pct: `${Math.max(1.5, (s.prog[r] / TOTALS[r]) * 100)}%` })),
+      showOverlay: s.phase !== 'idle', isRevealing: s.phase === 'reveal', isSummary: s.phase === 'summary',
+      hasCur: !!cur, noCur: !cur, cur: cur ? this.view(cur.c, cur.isNew, { shiny: cur.isShiny }) : null, curHolo: !!cur && cur.c.r === 'LEGENDARY',
+      openCur: () => cur && this.setState({ modal: { id: cur.c.id, isNew: cur.isNew } }),
+      flip: () => this.flip(),
+      stackList: Array.from({ length: remaining }, (_, i) => ({ tf: `translate(${i * 3}px, ${-i * 3}px) rotate(${(i - 2) * 0.8}deg)` })),
+      hasRemaining: remaining > 0, hintLine: `${t.packs.tapToReveal} · ${t.packs.remaining(remaining)}`,
+      dots: pack ? pack.cards.map((e, i) => ({ bg: i < s.revealed ? COL[e.c.r] : 'transparent' })) : [],
+      revealAll: () => this.toSummary(),
+      newCountLine: pack ? t.packs.newCount(pack.cards.filter((e) => e.isNew).length, pack.cards.length) : '',
+      sumCards: mkList(s.phase === 'summary' ? pack : null),
+      canAgain: avail > 0, again: () => this.startPack(),
+      closeOverlay: () => this.setState({ phase: 'idle' }),
+      hasModal: !!mc, m: mv, mCol: mc ? COL[mc.r] : '', mHolo: !!mc && mc.r === 'LEGENDARY',
+      mShownIn: mv.langBadge ? t.card.shownIn(DICT[mv.lang].languageName) : '',
+      mOwned: mc ? t.card.owned(mq, mc.o, String(Math.round(mc.n * 0.98) || 1)) : '',
+      mIcd: mc ? mc.icd : '', mTitle: mName,
+      mUrl: mc ? `https://${mv.lang}.wikipedia.org/wiki/${encodeURIComponent(mName)}` : '#',
+      closeModal: () => this.setState({ modal: null }),
+      stop: (e) => e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

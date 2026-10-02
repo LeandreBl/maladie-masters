@@ -1,0 +1,6 @@
+model AdminGrant {
+    email     String   @id
+    createdAt DateTime @default(now()) @map("created_at")
+
+    @@map("admin_grants")
+}

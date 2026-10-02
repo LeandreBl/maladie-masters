@@ -1,0 +1,37 @@
+model User {
+    id              String    @id @default(uuid())
+    firebaseUid     String    @unique @map("firebase_uid")
+    email           String    @unique
+    displayName     String?   @map("display_name")
+    photoUrl        String?   @map("photo_url")
+    role            UserRole  @default(USER)
+    /// The account's language: card names and articles are served in it.
+    locale          Locale    @default(en)
+    suspendedAt     DateTime? @map("suspended_at")
+    suspendedReason String?   @map("suspended_reason")
+
+    /// Packs earned from the timer, capped by `GameSettings.packMaxStored`.
+    /// The value is only exact as of `packsAnchorAt`: what accrued since is
+    /// computed on read (see PackWalletService), never by a background job.
+    packsStored   Int      @default(0) @map("packs_stored")
+    packsAnchorAt DateTime @default(now()) @map("packs_anchor_at")
+    /// Packs granted by an admin. Not capped, and spent after the natural ones
+    /// so that granting never stalls the timer.
+    bonusPacks    Int      @default(0) @map("bonus_packs")
+
+    lastSeenAt DateTime? @map("last_seen_at")
+    createdAt  DateTime  @default(now()) @map("created_at")
+    updatedAt  DateTime  @updatedAt @map("updated_at")
+
+    cards         UserCard[]
+    packOpenings  PackOpening[]
+    auditAsActor  AdminAuditEntry[] @relation("audit_actor")
+    auditAsTarget AdminAuditEntry[] @relation("audit_target")
+    syncRuns      DiseaseSyncRun[]
+    discord       DiscordAccount?
+    discordCode   DiscordLinkCode?
+
+    @@index([createdAt])
+    @@index([lastSeenAt])
+    @@map("users")
+}

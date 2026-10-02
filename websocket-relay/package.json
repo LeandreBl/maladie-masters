@@ -1,0 +1,20 @@
+{
+    "name": "maladie-masters-websocket-relay",
+    "version": "0.1.0",
+    "description": "Fans the backend's Redis events out to the fronts' websockets",
+    "private": true,
+    "type": "module",
+    "engines": {
+        "node": ">=22.12.0"
+    },
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "node --watch src/index.js",
+        "check": "node --check src/index.js",
+        "test": "node --test \"src/**/*.test.js\""
+    },
+    "dependencies": {
+        "ioredis": "^5.11.1",
+        "ws": "^8.18.3"
+    }
+}

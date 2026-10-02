@@ -1,0 +1,55 @@
+# Production behind an existing Traefik: nothing is published on the host,
+# Traefik reaches the containers through its own Docker network and handles
+# TLS. Postgres and Redis stay on the internal compose network only.
+#
+# Select it from .env with:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.traefik.yml
+
+services:
+  backend:
+    networks: [default, traefik]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
+      - traefik.http.routers.maladie-masters-api.rule=Host(`${API_HOST:?API_HOST is required, see example.env}`)
+      - traefik.http.routers.maladie-masters-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.maladie-masters-api.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.maladie-masters-api.loadbalancer.server.port=3000
+
+  # Same host as the API, path /ws: no extra DNS name or certificate. The
+  # longer rule wins in Traefik, but the priority makes it explicit.
+  websocket-relay:
+    networks: [default, traefik]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
+      - traefik.http.routers.maladie-masters-ws.rule=Host(`${API_HOST:?API_HOST is required, see example.env}`) && Path(`/ws`)
+      - traefik.http.routers.maladie-masters-ws.priority=100
+      - traefik.http.routers.maladie-masters-ws.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.maladie-masters-ws.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.maladie-masters-ws.loadbalancer.server.port=3000
+
+  frontend:
+    networks: [default, traefik]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
+      - traefik.http.routers.maladie-masters-front.rule=Host(`${FRONTEND_HOST:?FRONTEND_HOST is required, see example.env}`)
+      - traefik.http.routers.maladie-masters-front.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.maladie-masters-front.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.maladie-masters-front.loadbalancer.server.port=8080
+
+  admin-panel:
+    networks: [default, traefik]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
+      - traefik.http.routers.maladie-masters-admin.rule=Host(`${ADMIN_HOST:?ADMIN_HOST is required, see example.env}`)
+      - traefik.http.routers.maladie-masters-admin.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.maladie-masters-admin.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.maladie-masters-admin.loadbalancer.server.port=8080
+
+networks:
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik}

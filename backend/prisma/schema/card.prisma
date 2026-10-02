@@ -1,0 +1,61 @@
+/// One disease, one card: a Wikidata item. Rows are created and refreshed by
+/// the Wikipedia sync and never deleted: players own them. Everything that
+/// depends on the language lives in `CardLocalization`.
+model Card {
+    id         String   @id @default(uuid())
+    /// Collector number, in order of discovery.
+    number     Int      @unique @default(autoincrement())
+    wikidataId String   @unique @map("wikidata_id")
+    /// Lead image, from the English article first, then the others.
+    imageUrl   String?  @map("image_url")
+    icd10      String[] @default([])
+
+    /// Views over the last `GameSettings.pageviewsWindowDays` days, summed
+    /// over every language's article: the ranking is global.
+    pageviews        Int     @default(0)
+    /// 1 is the most viewed disease of the catalog.
+    popularityRank   Int?    @map("popularity_rank")
+    /// What the popularity ranking alone gives.
+    popularityRarity Rarity  @default(COMMON) @map("popularity_rarity")
+    /// Set by an admin to pin a card's rarity whatever its popularity.
+    rarityOverride   Rarity? @map("rarity_override")
+    /// The rarity in effect: the override when there is one. Packs draw on it.
+    rarity           Rarity  @default(COMMON)
+
+    /// Disabled cards never drop from a pack. Cards already owned stay owned.
+    enabled      Boolean   @default(true)
+    /// Set when the disease stopped showing up in Wikidata; it then stops
+    /// dropping until a later sync finds it again.
+    missingSince DateTime? @map("missing_since")
+    lastSyncedAt DateTime  @map("last_synced_at")
+    createdAt    DateTime  @default(now()) @map("created_at")
+    updatedAt    DateTime  @updatedAt @map("updated_at")
+
+    localizations CardLocalization[]
+    owners        UserCard[]
+    drops         PackOpeningCard[]
+
+    @@index([rarity, enabled])
+    @@index([pageviews])
+    @@map("cards")
+}
+
+/// The disease as one Wikipedia tells it. A card has one per language that
+/// has an article on it; a missing language falls back to English.
+model CardLocalization {
+    cardId       String  @map("card_id")
+    locale       Locale
+    name         String
+    pageTitle    String  @map("page_title")
+    wikipediaUrl String  @map("wikipedia_url")
+    description  String?
+    extract      String?
+    /// Views of this language's article alone.
+    pageviews    Int     @default(0)
+
+    card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+    @@id([cardId, locale])
+    @@index([locale, name])
+    @@map("card_localizations")
+}
