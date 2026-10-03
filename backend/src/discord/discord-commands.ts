@@ -9,8 +9,12 @@
 const SUB_COMMAND = 1;
 const STRING = 3;
 const CHANNEL = 7;
-/** Text and announcement channels: the bot posts nowhere else. */
-const POSTABLE_CHANNEL_TYPES = [0, 5];
+/**
+ * Text and announcement channels, and the threads in them (announcement,
+ * public, private): the bot posts nowhere else. A thread is a channel to the
+ * REST API, so posting there needs nothing special.
+ */
+const POSTABLE_CHANNEL_TYPES = [0, 5, 10, 11, 12];
 /** Manage Server, so that any member cannot redirect the announcements. */
 const MANAGE_GUILD = String(1 << 5);
 /** Interaction contexts: a server, and a DM with the bot. */

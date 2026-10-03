@@ -285,6 +285,11 @@ de chaque serveur Discord dont il est membre, en le mentionnant.
   montre, `/maladie-setup off channel:#salon` en retire un, `/maladie-setup off`
   les retire tous. Le bot poste un message d'accueil dans le salon pour vérifier
   ses permissions avant d'enregistrer.
+- **Fils** : un fil (public, privé ou d'annonce) se choisit comme un salon,
+  avec l'option `channel` ou en lançant la commande dans le fil. Il faut la
+  permission « Envoyer des messages dans les fils » (demandée par le lien
+  d'invitation) et, pour un fil privé, y avoir ajouté le bot en le mentionnant.
+  Un fil archivé se rouvre à la première annonce, sauf s'il est verrouillé.
 - **Pas de doublon** : Discord n'accepte un bot qu'une fois par serveur. En base,
   un serveur est une ligne (`DiscordGuild`) et chaque salon une
   ligne (`DiscordChannel`, clé = id du salon) : un salon ne peut pas être ajouté

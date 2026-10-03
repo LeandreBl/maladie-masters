@@ -9,9 +9,11 @@ const RATE_LIMIT_RETRIES = 2;
 
 /**
  * What the bot needs on a channel: View Channel (1 << 10), Send Messages
- * (1 << 11) and Embed Links (1 << 14). Mentioning a user needs nothing more.
+ * (1 << 11), Embed Links (1 << 14), and Send Messages in Threads (1 << 38) for
+ * announcements set up in a thread. Mentioning a user needs nothing more.
+ * BigInt: bit 38 is past what `<<` handles on a number.
  */
-export const BOT_PERMISSIONS = String((1 << 10) | (1 << 11) | (1 << 14));
+export const BOT_PERMISSIONS = String((1n << 10n) | (1n << 11n) | (1n << 14n) | (1n << 38n));
 
 /** Discord's JSON error codes the bot reacts to. */
 export const DiscordErrorCode = {

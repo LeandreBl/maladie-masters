@@ -135,7 +135,7 @@ Fichiers compose :
     Ed25519 sur le corps brut (gardé par le `json({ verify })` de `main.ts`).
     Route publique, non limitée, hors OpenAPI.
   - Commandes enregistrées au boot (`discord-commands.ts`) : `/maladie link|unlink`
-    pour le joueur, `/maladie-setup channel|off|list` (Gérer le serveur).
+    pour le joueur, `/maladie-setup channel|off|list` (Gérer le serveur), qui accepte salons et fils.
     **En anglais uniquement**, sans `*_localizations` : un nom traduit ne
     correspondrait plus à `/maladie link` écrit sur le site.
   - Un serveur = une ligne `DiscordGuild`, plusieurs `DiscordChannel`

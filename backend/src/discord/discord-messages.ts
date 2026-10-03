@@ -41,7 +41,7 @@ export const DISCORD_MESSAGES: Record<AppLocale, DiscordMessages> = {
     guildOnly: "Cette commande ne marche que sur un serveur.",
     setupDone: (channelId) => `✅ Les cartes légendaires des membres seront annoncées dans <#${channelId}>.`,
     setupFailed: (channelId) =>
-      `❌ Je ne peux pas écrire dans <#${channelId}>. Il me faut les permissions Voir le salon, Envoyer des messages et Intégrer des liens.`,
+      `❌ Je ne peux pas écrire dans <#${channelId}>. Il me faut les permissions Voir le salon, Envoyer des messages (dans les fils, pour un fil) et Intégrer des liens. Dans un fil privé, mentionne-moi d'abord pour m'y ajouter.`,
     setupWelcome:
       "🏆 Les cartes légendaires tirées sur Maladie Masters seront annoncées ici. Pour être mentionné, lie ton compte avec `/maladie link`.",
     setupAlready: (channelId) => `Les annonces sont déjà faites dans <#${channelId}>.`,
@@ -69,7 +69,7 @@ export const DISCORD_MESSAGES: Record<AppLocale, DiscordMessages> = {
     guildOnly: "This command only works in a server.",
     setupDone: (channelId) => `✅ Members' legendary cards will be announced in <#${channelId}>.`,
     setupFailed: (channelId) =>
-      `❌ I cannot write in <#${channelId}>. I need the View Channel, Send Messages and Embed Links permissions.`,
+      `❌ I cannot write in <#${channelId}>. I need the View Channel, Send Messages (in Threads, for a thread) and Embed Links permissions. In a private thread, mention me first to add me to it.`,
     setupWelcome:
       "🏆 Legendary cards drawn on Maladie Masters will be announced here. To be mentioned, link your account with `/maladie link`.",
     setupAlready: (channelId) => `Announcements already go to <#${channelId}>.`,
@@ -96,7 +96,7 @@ export const DISCORD_MESSAGES: Record<AppLocale, DiscordMessages> = {
     guildOnly: "此命令只能在服务器中使用。",
     setupDone: (channelId) => `✅ 成员抽到的传说卡牌将在 <#${channelId}> 公布。`,
     setupFailed: (channelId) =>
-      `❌ 我无法在 <#${channelId}> 发言。需要“查看频道”、“发送消息”和“嵌入链接”权限。`,
+      `❌ 我无法在 <#${channelId}> 发言。需要“查看频道”、“发送消息”（子区中需“在子区中发送消息”）和“嵌入链接”权限。如果是私密子区，请先提及我以将我加入。`,
     setupWelcome: "🏆 在 Maladie Masters 抽到的传说卡牌将在这里公布。用 `/maladie link` 绑定账号即可被提及。",
     setupAlready: (channelId) => `已经在 <#${channelId}> 公布。`,
     setupOff: "🔕 本服务器不再公布。",
