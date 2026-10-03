@@ -14,6 +14,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { PacksPage } from "./pages/PacksPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { Notices } from "./components/Notices";
+import { VerifyEmail } from "./components/VerifyEmail";
 import { RealtimeProvider } from "./realtime/RealtimeProvider";
 import { ThemeProvider, ThemeToggle } from "./theme/ThemeProvider";
 
@@ -95,8 +96,9 @@ function Shell() {
 
   if (!ready) return <main className="centered muted">{t.loading}</main>;
   if (!user) return <LoginPage />;
+  if (errorCode === "EMAIL_NOT_VERIFIED" && !me) return <VerifyEmail />;
   if (error && !me) {
-    // EMPTY_CATALOG, ACCOUNT_SUSPENDED, EMAIL_NOT_VERIFIED…
+    // EMPTY_CATALOG, ACCOUNT_SUSPENDED…
     return (
       <main className="centered">
         <p>{(errorCode && t.errors[errorCode]) || error}</p>

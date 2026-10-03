@@ -525,3 +525,14 @@ h1, h2, h3, p { margin: 0; }
   .mm-card-holo, .mm-card-frame, .mm-card-tint, .login-fan .fan-front { animation: none; }
   .card-btn, .pack, .chevron, .switch, .switch::after { transition: none; }
 }
+
+/* Email sign-in, under the Google button */
+.login-auth { display: flex; flex-direction: column; gap: 16px; max-width: 360px; }
+.or-sep { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.or-sep::before, .or-sep::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.email-form { display: flex; flex-direction: column; gap: 10px; }
+.email-form-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.link-btn { border: none; background: none; padding: 0; color: var(--muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.link-btn:hover:not(:disabled) { color: var(--text); }
+.verify-email { max-width: 460px; }
+.verify-email .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
