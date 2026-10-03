@@ -56,6 +56,13 @@ async function bootstrap() {
     app.use((request: Request, response: Response, next: NextFunction) => {
       const host = request.headers.host;
 
+      // The container healthcheck calls 127.0.0.1 directly, and Traefik only
+      // routes to healthy containers: rejecting it would take the API offline.
+      if (request.path === "/health") {
+        next();
+        return;
+      }
+
       if (!host || !isHostAllowed(host, allowedHosts)) {
         response.status(403).json({ message: "Host is not allowed" });
         return;
