@@ -28,6 +28,7 @@ export class UsersService {
       photoUrl: user.photoUrl,
       role: user.role,
       locale: user.locale,
+      sfw: user.sfw,
       createdAt: user.createdAt.toISOString(),
       packs,
       collection,
@@ -35,10 +36,10 @@ export class UsersService {
   }
 
   async update(userId: string, dto: UpdateMeDto): Promise<MeDto> {
-    if (dto.displayName !== undefined || dto.locale !== undefined) {
+    if (dto.displayName !== undefined || dto.locale !== undefined || dto.sfw !== undefined) {
       await this.prisma.user.update({
         where: { id: userId },
-        data: { displayName: dto.displayName, locale: dto.locale },
+        data: { displayName: dto.displayName, locale: dto.locale, sfw: dto.sfw },
       });
     }
     return this.me(userId);

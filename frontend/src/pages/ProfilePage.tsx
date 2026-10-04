@@ -14,7 +14,7 @@ const SWATCHES: Record<Theme, [string, string]> = {
   dark: ["#1c1a1b", "#4a4547"],
 };
 
-/** The account settings: name, language, theme, Discord, plus the player's numbers. */
+/** The account settings: name, language, theme, SFW mode, Discord, plus the player's numbers. */
 export function ProfilePage() {
   const user = useUser();
   const me = useMe();
@@ -24,6 +24,8 @@ export function ProfilePage() {
   const [name, setName] = useState(me.displayName ?? "");
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sfwBusy, setSfwBusy] = useState(false);
+  const [sfwError, setSfwError] = useState<string | null>(null);
 
   async function save() {
     setError(null);
@@ -33,6 +35,19 @@ export function ProfilePage() {
       setSaved(true);
     } catch (caught) {
       setError(caught instanceof ApiError ? (caught.code && t.errors[caught.code]) || caught.message : String(caught));
+    }
+  }
+
+  async function toggleSfw() {
+    setSfwError(null);
+    setSfwBusy(true);
+    try {
+      await api.updateMe(user, { sfw: !me.sfw });
+      await refresh();
+    } catch (caught) {
+      setSfwError(caught instanceof ApiError ? (caught.code && t.errors[caught.code]) || caught.message : String(caught));
+    } finally {
+      setSfwBusy(false);
     }
   }
 
@@ -121,6 +136,23 @@ export function ProfilePage() {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="panel profile-card">
+        <span className="overline">{t.profile.sfw}</span>
+        <button
+          type="button"
+          className="switch-row"
+          role="switch"
+          aria-checked={me.sfw}
+          disabled={sfwBusy}
+          onClick={() => void toggleSfw()}
+        >
+          <span className={me.sfw ? "switch on" : "switch"} />
+          {t.profile.sfwSwitch}
+        </button>
+        <span className="muted">{t.profile.sfwHint}</span>
+        {sfwError ? <span className="error">{sfwError}</span> : null}
       </section>
 
       <DiscordSection />

@@ -61,7 +61,7 @@ function query(params: Record<string, string | number | undefined>): string {
 
 export const api = {
   me: (user: User) => request<Me>(user, "/v1/me"),
-  updateMe: (user: User, payload: { displayName?: string; locale?: Locale }) =>
+  updateMe: (user: User, payload: { displayName?: string; locale?: Locale; sfw?: boolean }) =>
     request<Me>(user, "/v1/me", { method: "PATCH", body: JSON.stringify(payload) }),
   wallet: (user: User) => request<PackWallet>(user, "/v1/me/packs"),
   realtimeTicket: (user: User) =>

@@ -7,6 +7,9 @@ model User {
     role            UserRole  @default(USER)
     /// The account's language: card names and articles are served in it.
     locale          Locale    @default(en)
+    /// Safe for work: the player app hides the Wikimedia pictures, some of
+    /// which are clinical photos, and draws the generated art instead.
+    sfw             Boolean   @default(false)
     suspendedAt     DateTime? @map("suspended_at")
     suspendedReason String?   @map("suspended_reason")
 

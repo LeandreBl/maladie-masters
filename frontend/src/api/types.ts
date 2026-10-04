@@ -45,6 +45,8 @@ export type Me = {
   role: "USER" | "ADMIN";
   /** Cards are served in it; the interface follows it too. */
   locale: Locale;
+  /** Safe for work: card pictures are hidden, the generated art drawn instead. */
+  sfw: boolean;
   createdAt: string;
   packs: PackWallet;
   collection: CollectionSummary;

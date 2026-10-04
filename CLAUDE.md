@@ -182,7 +182,7 @@ Fichiers compose :
   article. Elle porte `name`, `pageTitle`, `wikipediaUrl`, `description`,
   `extract` et `pageviews`.
 - `User` : porte `locale` (choisie à l'inscription via `Accept-Language`),
-  le portefeuille de paquets et `suspendedAt`. `UserCard` porte la quantité de
+  `sfw`, le portefeuille de paquets et `suspendedAt`. `UserCard` porte la quantité de
   chaque carte possédée.
 - `PackOpening` / `PackOpeningCard` (la rareté est figée au moment du tirage),
   `AdminAuditEntry`, `DiseaseSyncRun` (phase, compteurs, log JSON),
@@ -217,6 +217,9 @@ Fichiers compose :
     le premier rendu par `index.html`.
   - Une carte (`src/components/CardTile.tsx`) est dimensionnée en `em` à
     partir de sa largeur (`font-size = width / 15`).
+  - Mode SFW (`me.sfw`, case à cocher du Profil) : `CardFace` remplace la
+    photo Wikimedia par l'illustration générée (`GeneratedArt`). Rien n'est
+    filtré côté API.
   - Discord est une section repliée du Profil (`/profil`) ; `/discord`
     redirige vers elle.
   - L'ouverture d'un paquet se révèle **carte par carte**, comme Wiki Masters

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Card } from "../api/types";
 import { GeneratedArt } from "./CardArt";
 import { cardNumber, formatCompact } from "../lib/format";
+import { useAuth } from "../auth/AuthProvider";
 import { useI18n } from "../i18n/I18nProvider";
 
 /**
@@ -27,6 +28,8 @@ export function CardFace({
   holo?: boolean;
 }) {
   const { t, locale } = useI18n();
+  // No profile on the sign-in page, whose demo cards have no picture anyway.
+  const sfw = useAuth().me?.sfw ?? false;
   const hidden = quantity === 0;
   const isShiny = Boolean(shiny) && !hidden;
   const rarity = card.rarity.toLowerCase();
@@ -48,7 +51,7 @@ export function CardFace({
       <div className="mm-art">
         {hidden ? (
           <div className="mm-art-fill" />
-        ) : card.imageUrl && brokenImage !== card.imageUrl ? (
+        ) : !sfw && card.imageUrl && brokenImage !== card.imageUrl ? (
           <img
             className="mm-art-img"
             src={card.imageUrl}

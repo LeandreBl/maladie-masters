@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN "sfw" BOOLEAN NOT NULL DEFAULT false;
