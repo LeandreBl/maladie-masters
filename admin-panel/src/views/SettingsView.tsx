@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { RarityDot } from "../components/RarityTag";
 import { Button } from "../components/ui/Button";
 import { Card, Panel } from "../components/ui/Card";
-import { NumberField, ToggleRow } from "../components/ui/Field";
+import { Dialog } from "../components/ui/Dialog";
+import { CheckboxField, NumberField, TextField, ToggleRow } from "../components/ui/Field";
 import { SkeletonList, SkeletonPanel, SkeletonRegion } from "../components/ui/Skeleton";
 import { useAdminAction, useAdminResource } from "../hooks/use-admin-resource";
 import { useLocale, useT } from "../i18n";
@@ -352,6 +353,72 @@ export function SettingsView() {
           </div>
         </Panel>
       </div>
+
+      <DangerZone />
     </div>
+  );
+}
+
+/** Wipes every collection: a new season. Typing RESET is the safety catch. */
+function DangerZone() {
+  const t = useT();
+  const { run, busy } = useAdminAction();
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState("");
+  const [history, setHistory] = useState(false);
+
+  const close = () => {
+    setOpen(false);
+    setTyped("");
+    setHistory(false);
+  };
+
+  return (
+    <Panel title={t.settings.dangerTitle} className="mt-5">
+      <div className="flex flex-wrap items-center gap-4">
+        <p className="mb-0 min-w-[240px] flex-1 text-sm text-muted">{t.settings.resetAllHelp}</p>
+        <Button variant="danger" onClick={() => setOpen(true)}>
+          {t.settings.resetAll}
+        </Button>
+      </div>
+
+      {open ? (
+        <Dialog
+          title={t.settings.resetAllTitle}
+          body={t.settings.resetAllBody}
+          onClose={close}
+          actions={
+            <>
+              <Button onClick={close} disabled={busy}>
+                {t.common.cancel}
+              </Button>
+              <Button
+                variant="danger"
+                loading={busy}
+                disabled={typed.trim() !== "RESET"}
+                onClick={() =>
+                  void run((user) => adminApi.resetAllCollections(user, history), {
+                    success: (result) => t.settings.resetAllDone(result.players, result.cards),
+                    onDone: close,
+                  })
+                }
+              >
+                {t.dialogs.resetSubmit}
+              </Button>
+            </>
+          }
+        >
+          <div className="grid gap-[14px]">
+            <CheckboxField
+              label={t.dialogs.resetHistory}
+              help={t.dialogs.resetHistoryHelp}
+              checked={history}
+              onChange={setHistory}
+            />
+            <TextField label={t.settings.resetAllConfirm} value={typed} onChange={setTyped} autoComplete="off" />
+          </div>
+        </Dialog>
+      ) : null}
+    </Panel>
   );
 }

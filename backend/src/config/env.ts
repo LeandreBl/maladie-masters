@@ -292,6 +292,16 @@ export const ENV_VARIABLES = {
     help: "A positive integer.",
     validator: isInteger(1),
   },
+  THROTTLE_IP_PER_MINUTE: {
+    format: asInteger,
+    default: "1200",
+    description:
+      "Requests per minute allowed per IP address, all routes and callers together.",
+    help:
+      "A positive integer, well above THROTTLE_DEFAULT_PER_MINUTE: players behind one " +
+      "school or office address share it. Needs TRUST_PROXY behind a reverse proxy.",
+    validator: isInteger(1),
+  },
 } satisfies Record<string, EnvVariable>;
 
 type Variables = typeof ENV_VARIABLES;

@@ -1,10 +1,12 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { Prisma, UserRole, type User } from "@prisma/client";
 import { CollectionService } from "../cards/collection.service";
 import { AppException } from "../common/app.exception";
 import { ErrorCode } from "../common/error-code.enum";
 import { pageWindow } from "../common/pagination";
 import { AuditAction, AuditService } from "../audit/audit.service";
+import { AdminAccessService } from "./admin-access.service";
+import { FirebaseService } from "../auth/firebase.service";
 import { PacksService } from "../packs/packs.service";
 import type { PackWalletDto } from "../packs/dto/pack.dto";
 import { PrismaService } from "../prisma/prisma.service";
@@ -19,6 +21,9 @@ import type {
   AdminUsersPageDto,
   AdminUsersQueryDto,
   CardRemovalDto,
+  CollectionsResetDto,
+  CopiesRemovalDto,
+  UserDeletionDto,
 } from "./dto/admin-users.dto";
 
 const WEEK_MS = 7 * 24 * 60 * 60_000;
@@ -29,6 +34,8 @@ type UserWithCounts = User & {
 
 @Injectable()
 export class AdminUsersService {
+  private readonly logger = new Logger(AdminUsersService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly packs: PacksService,
@@ -36,6 +43,8 @@ export class AdminUsersService {
     private readonly settings: GameSettingsService,
     private readonly audit: AuditService,
     private readonly realtime: RealtimeService,
+    private readonly firebase: FirebaseService,
+    private readonly access: AdminAccessService,
   ) {}
 
   async list(query: AdminUsersQueryDto): Promise<AdminUsersPageDto> {
@@ -249,6 +258,192 @@ export class AdminUsersService {
     );
     this.realtime.toUser(userId, { type: "card.removed", data: { cardId } });
     return { cardId, removed: true };
+  }
+
+  /**
+   * Takes some copies of a card: normal ones by default, shiny ones with
+   * `shiny`. Asking for more than owned takes all of that kind; the row goes
+   * when nothing is left.
+   */
+  async removeCopies(
+    actor: User,
+    userId: string,
+    cardId: string,
+    quantity: number | undefined,
+    shiny: boolean,
+  ): Promise<CopiesRemovalDto> {
+    await this.findWithCounts(userId);
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const copy = await tx.userCard.findUnique({
+        where: { userId_cardId: { userId, cardId } },
+        include: { card: { include: CARD_INCLUDE } },
+      });
+      const available = copy
+        ? shiny
+          ? copy.shinyQuantity
+          : copy.quantity - copy.shinyQuantity
+        : 0;
+      if (!copy || available === 0) {
+        throw new AppException(
+          ErrorCode.CARD_NOT_OWNED,
+          HttpStatus.NOT_FOUND,
+          shiny
+            ? "This player owns no shiny copy of this card"
+            : "This player owns no normal copy of this card",
+        );
+      }
+
+      const removed = Math.min(quantity ?? available, available);
+      const left = copy.quantity - removed;
+      const shinyLeft = copy.shinyQuantity - (shiny ? removed : 0);
+      if (left === 0) {
+        await tx.userCard.delete({ where: { userId_cardId: { userId, cardId } } });
+      } else {
+        await tx.userCard.update({
+          where: { userId_cardId: { userId, cardId } },
+          data: { quantity: left, shinyQuantity: shinyLeft },
+        });
+      }
+      return { card: copy.card, removed, left, shinyLeft };
+    });
+
+    await this.audit.record(
+      actor.id,
+      AuditAction.CardsRemoved,
+      {
+        cardId,
+        cardName: cardLabel(result.card),
+        removed: result.removed,
+        shiny,
+        left: result.left,
+      },
+      userId,
+    );
+    this.realtime.toUser(userId, { type: "card.removed", data: { cardId } });
+    return {
+      cardId,
+      removed: result.removed,
+      quantity: result.left,
+      shinyQuantity: result.shinyLeft,
+    };
+  }
+
+  /** Empties a collection; the pack history goes too with `history`. */
+  async resetCollection(
+    actor: User,
+    userId: string,
+    history: boolean,
+    locale: AppLocale,
+  ): Promise<AdminUserDetailDto> {
+    await this.findWithCounts(userId);
+    const [cards, openings] = await this.prisma.$transaction([
+      this.prisma.userCard.deleteMany({ where: { userId } }),
+      this.prisma.packOpening.deleteMany({
+        // Matching nothing keeps the transaction's shape fixed.
+        where: history ? { userId } : { id: { in: [] } },
+      }),
+    ]);
+
+    await this.audit.record(
+      actor.id,
+      AuditAction.CollectionReset,
+      { cards: cards.count, openings: openings.count, history },
+      userId,
+    );
+    this.realtime.toUser(userId, { type: "collection.reset", data: {} });
+    return this.detail(userId, locale);
+  }
+
+  /** Empties every collection at once, admins' included: a new season. */
+  async resetAllCollections(
+    actor: User,
+    history: boolean,
+  ): Promise<CollectionsResetDto> {
+    const [owners, cards, openings] = await this.prisma.$transaction([
+      this.prisma.userCard.groupBy({ by: ["userId"], orderBy: { userId: "asc" } }),
+      this.prisma.userCard.deleteMany({}),
+      this.prisma.packOpening.deleteMany({
+        where: history ? {} : { id: { in: [] } },
+      }),
+    ]);
+    const result = {
+      players: owners.length,
+      cards: cards.count,
+      openings: openings.count,
+    };
+
+    await this.audit.record(actor.id, AuditAction.CollectionsReset, {
+      ...result,
+      history,
+    });
+    this.realtime.toEveryone({ type: "collection.reset", data: {} });
+    return result;
+  }
+
+  /**
+   * Deletes a player for good: collection, openings, Discord link and the
+   * audit entries about them go with the row. The Firebase account is deleted
+   * too, so the address can sign up again from scratch — but a session
+   * already open may still be let through for up to a minute (the revocation
+   * check in FirebaseService), and a request then would create a fresh, empty
+   * account.
+   */
+  async deleteUser(actor: User, userId: string): Promise<UserDeletionDto> {
+    const user = await this.findWithCounts(userId);
+    if (user.id === actor.id) {
+      throw new AppException(
+        ErrorCode.SELF_DELETION_FORBIDDEN,
+        HttpStatus.FORBIDDEN,
+        "You cannot delete your own account",
+      );
+    }
+    this.access.assertNotBootstrap(user.email);
+
+    // An admin's grant goes too: it is keyed by email and would make the
+    // address admin again at its next sign-up. The last grant stays, as when
+    // revoking from the Access page.
+    const grant =
+      user.role === UserRole.ADMIN
+        ? await this.prisma.adminGrant.findUnique({ where: { email: user.email } })
+        : null;
+    if (grant && (await this.prisma.adminGrant.count()) <= 1) {
+      throw new AppException(
+        ErrorCode.LAST_ADMIN_REMOVAL_FORBIDDEN,
+        HttpStatus.FORBIDDEN,
+        "Cannot delete the last admin",
+      );
+    }
+
+    await this.prisma.$transaction([
+      ...(grant ? [this.prisma.adminGrant.delete({ where: { email: grant.email } })] : []),
+      this.prisma.user.delete({ where: { id: userId } }),
+    ]);
+    this.realtime.disconnect(userId);
+
+    let firebaseDeleted = false;
+    try {
+      await this.firebase.auth.deleteUser(user.firebaseUid);
+      firebaseDeleted = true;
+    } catch (error) {
+      // The row is gone either way; a Firebase account left behind only means
+      // the player can sign in again and start over.
+      this.logger.warn(
+        `Deleted user ${userId} but not Firebase account ${user.firebaseUid}: ${(error as Error).message}`,
+      );
+    }
+
+    // The entry has no target: the player's row, and with it any entry
+    // pointing at it, is gone.
+    await this.audit.record(actor.id, AuditAction.UserDeleted, {
+      email: user.email,
+      displayName: user.displayName,
+      wasAdmin: !!grant,
+      uniqueCards: user._count.cards,
+      packsOpened: user._count.packOpenings,
+      firebaseDeleted,
+    });
+    return { userId, deleted: true, firebaseDeleted };
   }
 
   async suspend(

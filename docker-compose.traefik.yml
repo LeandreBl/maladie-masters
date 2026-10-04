@@ -4,6 +4,12 @@
 #
 # Select it from .env with:
 #   COMPOSE_FILE=docker-compose.yml:docker-compose.traefik.yml
+#
+# Each host also gets a router on the plain HTTP entrypoint that only redirects
+# to HTTPS: without it, typing the address without https:// lands on a 404.
+# Traefik's own ACME challenge router outranks it, so certificates still renew.
+# The middleware is declared on every service, identically, so that each
+# redirect keeps working while another container is down.
 
 services:
   backend:
@@ -15,6 +21,11 @@ services:
       - traefik.http.routers.maladie-masters-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.maladie-masters-api.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
       - traefik.http.services.maladie-masters-api.loadbalancer.server.port=3000
+      - traefik.http.routers.maladie-masters-api-http.rule=Host(`${API_HOST:?API_HOST is required, see example.env}`)
+      - traefik.http.routers.maladie-masters-api-http.entrypoints=${TRAEFIK_HTTP_ENTRYPOINT:-web}
+      - traefik.http.routers.maladie-masters-api-http.middlewares=maladie-masters-https
+      - traefik.http.middlewares.maladie-masters-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.maladie-masters-https.redirectscheme.permanent=true
 
   # Same host as the API, path /ws: no extra DNS name or certificate. The
   # longer rule wins in Traefik, but the priority makes it explicit.
@@ -38,6 +49,11 @@ services:
       - traefik.http.routers.maladie-masters-front.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.maladie-masters-front.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
       - traefik.http.services.maladie-masters-front.loadbalancer.server.port=8080
+      - traefik.http.routers.maladie-masters-front-http.rule=Host(`${FRONTEND_HOST:?FRONTEND_HOST is required, see example.env}`)
+      - traefik.http.routers.maladie-masters-front-http.entrypoints=${TRAEFIK_HTTP_ENTRYPOINT:-web}
+      - traefik.http.routers.maladie-masters-front-http.middlewares=maladie-masters-https
+      - traefik.http.middlewares.maladie-masters-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.maladie-masters-https.redirectscheme.permanent=true
 
   admin-panel:
     networks: [default, traefik]
@@ -48,6 +64,11 @@ services:
       - traefik.http.routers.maladie-masters-admin.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.maladie-masters-admin.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
       - traefik.http.services.maladie-masters-admin.loadbalancer.server.port=8080
+      - traefik.http.routers.maladie-masters-admin-http.rule=Host(`${ADMIN_HOST:?ADMIN_HOST is required, see example.env}`)
+      - traefik.http.routers.maladie-masters-admin-http.entrypoints=${TRAEFIK_HTTP_ENTRYPOINT:-web}
+      - traefik.http.routers.maladie-masters-admin-http.middlewares=maladie-masters-https
+      - traefik.http.middlewares.maladie-masters-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.maladie-masters-https.redirectscheme.permanent=true
 
 networks:
   traefik:

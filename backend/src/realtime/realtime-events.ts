@@ -66,8 +66,12 @@ export type RealtimeEvent =
       data: { cardId: string; quantity: number; shiny: boolean };
     }
   | { type: "card.removed"; data: { cardId: string } }
+  // --- One player, or everyone after a global reset --------------------------
+  | { type: "collection.reset"; data: Record<string, never> }
   // --- Everyone -------------------------------------------------------------
-  | { type: "settings.updated"; data: Record<string, never> };
+  | { type: "settings.updated"; data: Record<string, never> }
+  /** A family was created, edited or deleted: progress and scores may move. */
+  | { type: "families.updated"; data: Record<string, never> };
 
 export type RealtimeEventType = RealtimeEvent["type"];
 

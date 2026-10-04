@@ -7,9 +7,11 @@ import {
   CollectionPageDto,
   CollectionQueryDto,
   CollectionSummaryDto,
+  FamilyProgressDto,
 } from "../cards/dto/card.dto";
+import { FamiliesService } from "../families/families.service";
 import type { AppLocale } from "../common/locale";
-import { RequestLocale } from "../common/request-locale.decorator";
+import { ApiLocalized, RequestLocale } from "../common/request-locale.decorator";
 import { ApiEndpoint, ApiTag } from "../common/swagger";
 import { MeDto, UpdateMeDto } from "./dto/me.dto";
 import { UsersService } from "./users.service";
@@ -19,6 +21,7 @@ export class UsersController {
   constructor(
     private readonly users: UsersService,
     private readonly collection: CollectionService,
+    private readonly families: FamiliesService,
   ) {}
 
   @Get()
@@ -71,5 +74,21 @@ export class UsersController {
   })
   summary(@CurrentUser() user: User): Promise<CollectionSummaryDto> {
     return this.collection.summary(user.id);
+  }
+
+  @Get("families")
+  @ApiEndpoint({
+    summary: "Get the caller's progress in every family",
+    description:
+      "Families are themed sets of cards (cancers, mental disorders…). Owning every droppable member of one adds its `bonusPoints` to the score. Filter the collection with `?family=` to browse one.",
+    response: "Families returned",
+    type: [FamilyProgressDto],
+  })
+  @ApiLocalized()
+  familyProgress(
+    @CurrentUser() user: User,
+    @RequestLocale() locale: AppLocale,
+  ): Promise<FamilyProgressDto[]> {
+    return this.families.progress(user.id, locale);
   }
 }

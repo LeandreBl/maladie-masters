@@ -13,6 +13,10 @@ import type { AdminGrantDto, AdminRemovalDto } from "./dto/admin-access.dto";
  * Admin grants, keyed by email so an address can be promoted before its owner
  * ever signs in. The `ADMINS` variable seeds them at boot, so a fresh install
  * is never without an admin.
+ *
+ * Those grants are the root of trust: the panel cannot revoke them, nor delete
+ * their accounts. Otherwise one hijacked admin account could lock the owners
+ * out — until the next boot, which would quietly hand the rights back.
  */
 @Injectable()
 export class AdminAccessService implements OnModuleInit {
@@ -26,12 +30,7 @@ export class AdminAccessService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const emails = new Set(
-      this.config
-        .get("ADMINS", { infer: true })
-        .map((email) => this.normalize(email))
-        .filter((email): email is string => !!email),
-    );
+    const emails = this.bootstrapEmails();
     if (emails.size === 0) return;
 
     await Promise.all([...emails].map((email) => this.grant(email)));
@@ -52,7 +51,25 @@ export class AdminAccessService implements OnModuleInit {
       email: grant.email,
       createdAt: grant.createdAt.toISOString(),
       hasSignedIn: signedIn.has(grant.email),
+      bootstrap: this.isBootstrap(grant.email),
     }));
+  }
+
+  /** Whether `email` is listed in `ADMINS`, hence out of the panel's reach. */
+  isBootstrap(email: string): boolean {
+    const normalized = this.normalize(email);
+    return !!normalized && this.bootstrapEmails().has(normalized);
+  }
+
+  /** Refuses an action that would take an `ADMINS` address its rights. */
+  assertNotBootstrap(email: string): void {
+    if (this.isBootstrap(email)) {
+      throw new AppException(
+        ErrorCode.BOOTSTRAP_ADMIN_PROTECTED,
+        HttpStatus.FORBIDDEN,
+        "This admin is granted by the ADMINS variable: remove it from there",
+      );
+    }
   }
 
   async add(actor: User, email: string): Promise<AdminGrantDto> {
@@ -74,6 +91,7 @@ export class AdminAccessService implements OnModuleInit {
       email: grant.email,
       createdAt: grant.createdAt.toISOString(),
       hasSignedIn: !!user,
+      bootstrap: this.isBootstrap(grant.email),
     };
   }
 
@@ -91,6 +109,7 @@ export class AdminAccessService implements OnModuleInit {
         "Admin grant not found",
       );
     }
+    this.assertNotBootstrap(normalized);
     if (count <= 1) {
       throw new AppException(
         ErrorCode.LAST_ADMIN_REMOVAL_FORBIDDEN,
@@ -129,6 +148,15 @@ export class AdminAccessService implements OnModuleInit {
       }),
     ]);
     return grant;
+  }
+
+  private bootstrapEmails(): Set<string> {
+    return new Set(
+      this.config
+        .get("ADMINS", { infer: true })
+        .map((email) => this.normalize(email))
+        .filter((email): email is string => !!email),
+    );
   }
 
   private normalize(email?: string | null): string | null {

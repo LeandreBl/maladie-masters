@@ -43,7 +43,7 @@ export class LeaderboardController {
   @ApiEndpoint({
     summary: "Top collectors",
     description:
-      "Ranked by the sum of the rarity points of every distinct card owned (COMMON 1, UNCOMMON 3, RARE 10, EPIC 30, LEGENDARY 100).",
+      "Ranked by the sum of the rarity points of every distinct card owned (COMMON 1, UNCOMMON 3, RARE 10, EPIC 30, LEGENDARY 100), plus the bonus of every family completed.",
     response: "Leaderboard returned",
     type: [LeaderboardEntryDto],
     validation: true,

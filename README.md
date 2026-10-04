@@ -23,6 +23,11 @@ soit sa rareté. Elle s'affiche alors en couleurs inversées, avec un cadre
 irisé. Le shiny est un attribut de l'exemplaire : on peut posséder la même
 maladie en normal et en shiny. Le taux se règle dans le panel admin.
 
+Les **familles** regroupent des cartes autour d'un thème : cancers, troubles
+mentaux, IST… Un joueur qui possède toutes les cartes d'une famille (celles qui
+peuvent encore tomber) gagne son bonus de points au classement. Les familles et
+leurs règles se définissent dans le panel admin.
+
 ## Architecture
 
 Même structure que git-web-review (backend) et Agility Pro (panel admin).
@@ -212,6 +217,14 @@ journal d'audit.
   d'emplacements, nombre, poids par rareté). Le panel affiche en direct la part
   de chaque rareté et sa fréquence (« 1 paquet sur N »). On y règle aussi la
   répartition du catalogue et la planification de l'import.
+- **Familles** : chaque famille a un nom dans les trois langues, une icône, un
+  bonus et des règles. Une règle est une regex insensible à la casse sur le
+  nom, le titre, la description ou le résumé (dans une langue ou dans toutes),
+  sur les codes CIM-10 ou le QID, ou une **classe Wikidata** (`Q12078` = cancer)
+  qui prend toutes ses sous-classes. Les règles peuvent inclure ou exclure, et
+  on peut ajouter ou retirer une carte à la main. L'éditeur montre en direct le
+  nombre de cartes de chaque règle, les membres et les cartes exclues, avec la
+  règle qui les a retenues. Un clic retire une carte ou la réinclut.
 
 ## L'import Wikipédia
 

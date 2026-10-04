@@ -41,6 +41,7 @@ export function ProfilePage() {
     [t.profile.copies, formatNumber(me.collection.totalCopies, locale)],
     [t.profile.shiny, formatNumber(me.collection.shinyOwned, locale)],
     [t.profile.score, formatNumber(me.collection.score, locale)],
+    [t.profile.familyBonus, formatNumber(me.collection.familyBonus, locale)],
     [t.profile.memberSince, new Intl.DateTimeFormat(intlLocale(locale), { dateStyle: "medium" }).format(new Date(me.createdAt))],
   ];
 

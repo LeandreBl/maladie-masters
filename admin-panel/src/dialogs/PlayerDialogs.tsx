@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { CardThumb, RarityTag } from "../components/RarityTag";
 import { Button } from "../components/ui/Button";
 import { Dialog } from "../components/ui/Dialog";
-import { CheckboxField, NumberField, TextAreaField, TextField } from "../components/ui/Field";
+import { CheckboxField, NumberField, RadioField, TextAreaField, TextField } from "../components/ui/Field";
 import { useAuthedUser } from "../auth-context";
 import { useAdminAction } from "../hooks/use-admin-resource";
 import { useT } from "../i18n";
-import { adminApi, type AdminCard } from "../lib/api";
+import { adminApi, type AdminCard, type CollectionItem } from "../lib/api";
 
 /** Adds — or takes back — bonus packs. */
 export function GrantPacksDialog({
@@ -219,6 +219,198 @@ export function SuspendDialog({
       }
     >
       <TextAreaField label={t.dialogs.suspendReason} value={reason} onChange={setReason} rows={3} />
+    </Dialog>
+  );
+}
+
+/** Takes some copies of a card, normal or shiny ones. */
+export function RemoveCopiesDialog({
+  userId,
+  item,
+  onClose,
+  onDone,
+}: {
+  userId: string;
+  item: CollectionItem;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const t = useT();
+  const { run, busy } = useAdminAction();
+  const normal = item.quantity - item.shinyQuantity;
+  const shinyOwned = item.shinyQuantity;
+  // Normal copies first: a shiny is the rarer thing to take by mistake.
+  const [kind, setKind] = useState<"normal" | "shiny">(normal > 0 ? "normal" : "shiny");
+  const available = kind === "shiny" ? shinyOwned : normal;
+  const [quantity, setQuantity] = useState<number | null>(available);
+
+  useEffect(() => setQuantity(available), [available]);
+
+  const valid = quantity !== null && Number.isInteger(quantity) && quantity >= 1 && quantity <= available;
+
+  return (
+    <Dialog
+      title={t.dialogs.removeTitle(item.card.name)}
+      body={t.dialogs.removeBody}
+      onClose={onClose}
+      actions={
+        <>
+          <Button onClick={onClose} disabled={busy}>
+            {t.common.cancel}
+          </Button>
+          <Button
+            variant="danger"
+            loading={busy}
+            disabled={!valid}
+            onClick={() =>
+              void run(
+                (user) => adminApi.removeCopies(user, userId, item.card.id, quantity ?? 1, kind === "shiny"),
+                {
+                  success: (result) => t.dialogs.removed(item.card.name, result.removed),
+                  onDone: () => {
+                    onDone();
+                    onClose();
+                  },
+                },
+              )
+            }
+          >
+            {t.dialogs.removeSubmit}
+          </Button>
+        </>
+      }
+    >
+      <div className="grid gap-[14px]">
+        {normal > 0 && shinyOwned > 0 ? (
+          <div className="grid gap-2">
+            <span className="text-xs text-muted">{t.dialogs.removeKind}</span>
+            <RadioField
+              name="remove-kind"
+              option="normal"
+              value={kind}
+              onChange={setKind}
+              label={t.dialogs.removeNormal(normal)}
+            />
+            <RadioField
+              name="remove-kind"
+              option="shiny"
+              value={kind}
+              onChange={setKind}
+              label={t.dialogs.removeShiny(shinyOwned)}
+            />
+          </div>
+        ) : null}
+        <NumberField
+          label={`${t.dialogs.removeQuantity} (max ${available})`}
+          value={quantity}
+          onChange={setQuantity}
+          min={1}
+          step={1}
+        />
+      </div>
+    </Dialog>
+  );
+}
+
+export function ResetCollectionDialog({
+  userId,
+  name,
+  onClose,
+  onDone,
+}: {
+  userId: string;
+  name: string;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const t = useT();
+  const { run, busy } = useAdminAction();
+  const [history, setHistory] = useState(false);
+
+  return (
+    <Dialog
+      title={t.dialogs.resetTitle}
+      body={t.dialogs.resetBody(name)}
+      onClose={onClose}
+      actions={
+        <>
+          <Button onClick={onClose} disabled={busy}>
+            {t.common.cancel}
+          </Button>
+          <Button
+            variant="danger"
+            loading={busy}
+            onClick={() =>
+              void run((user) => adminApi.resetCollection(user, userId, history), {
+                success: t.dialogs.resetDone,
+                onDone: () => {
+                  onDone();
+                  onClose();
+                },
+              })
+            }
+          >
+            {t.dialogs.resetSubmit}
+          </Button>
+        </>
+      }
+    >
+      <CheckboxField
+        label={t.dialogs.resetHistory}
+        help={t.dialogs.resetHistoryHelp}
+        checked={history}
+        onChange={setHistory}
+      />
+    </Dialog>
+  );
+}
+
+/** Irreversible, so the address has to be typed back. */
+export function DeleteUserDialog({
+  userId,
+  email,
+  admin,
+  onClose,
+  onDone,
+}: {
+  userId: string;
+  email: string;
+  admin: boolean;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const t = useT();
+  const { run, busy } = useAdminAction();
+  const [typed, setTyped] = useState("");
+
+  return (
+    <Dialog
+      title={t.dialogs.deleteTitle}
+      body={admin ? `${t.dialogs.deleteBody} ${t.dialogs.deleteAdminNote}` : t.dialogs.deleteBody}
+      onClose={onClose}
+      actions={
+        <>
+          <Button onClick={onClose} disabled={busy}>
+            {t.common.cancel}
+          </Button>
+          <Button
+            variant="danger"
+            loading={busy}
+            disabled={typed.trim().toLowerCase() !== email.toLowerCase()}
+            onClick={() =>
+              void run((user) => adminApi.deleteUser(user, userId), {
+                success: (result) =>
+                  result.firebaseDeleted ? t.dialogs.deleted(email) : t.dialogs.deletedFirebaseKept(email),
+                onDone,
+              })
+            }
+          >
+            {t.dialogs.deleteSubmit}
+          </Button>
+        </>
+      }
+    >
+      <TextField label={t.dialogs.deleteConfirm(email)} value={typed} onChange={setTyped} autoComplete="off" />
     </Dialog>
   );
 }

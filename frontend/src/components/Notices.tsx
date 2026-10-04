@@ -63,6 +63,10 @@ export function Notices() {
       case "card.removed":
         void refresh();
         break;
+      case "collection.reset":
+        void refresh();
+        show(t.notices.collectionReset);
+        break;
       case "settings.updated":
       case "realtime.resync":
         // The pack timer may have changed, or a grant been missed.

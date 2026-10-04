@@ -1,4 +1,6 @@
+import { useState } from "react";
 import type { Card } from "../api/types";
+import { GeneratedArt } from "./CardArt";
 import { cardNumber, formatCompact } from "../lib/format";
 import { useI18n } from "../i18n/I18nProvider";
 
@@ -30,6 +32,8 @@ export function CardFace({
   const rarity = card.rarity.toLowerCase();
   const top = card.rarity === "EPIC" || card.rarity === "LEGENDARY";
   const showHolo = !hidden && (holo ?? card.rarity === "LEGENDARY");
+  // Wikimedia sometimes drops a file: fall back to the generated art.
+  const [brokenImage, setBrokenImage] = useState<string | null>(null);
 
   return (
     <div
@@ -42,11 +46,18 @@ export function CardFace({
         <span className="mm-card-gem" />
       </div>
       <div className="mm-art">
-        {card.imageUrl && !hidden ? (
-          <img className="mm-art-img" src={card.imageUrl} alt="" loading="lazy" />
-        ) : (
-          // About 40 % of the diseases have no picture on Wikimedia.
+        {hidden ? (
           <div className="mm-art-fill" />
+        ) : card.imageUrl && brokenImage !== card.imageUrl ? (
+          <img
+            className="mm-art-img"
+            src={card.imageUrl}
+            alt=""
+            loading="lazy"
+            onError={() => setBrokenImage(card.imageUrl)}
+          />
+        ) : (
+          <GeneratedArt card={card} />
         )}
         {hidden ? <span className="mm-art-q">?</span> : null}
         {!hidden && isNew ? <span className="mm-badge mm-badge--new">{t.card.new}</span> : null}

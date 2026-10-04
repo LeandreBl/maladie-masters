@@ -15,8 +15,11 @@ import { ErrorCode } from "../error-code.enum";
  * This guard is global, so it runs before the route's `AuthGuard` and normally
  * does not see `request.user`: it falls back to a fingerprint of the token,
  * which is stable for as long as the token lives. The IP is only used for
- * unauthenticated calls — `POST /v1/auth/token` first among them, which is
- * precisely the one worth protecting.
+ * calls without a token.
+ *
+ * The token is not verified yet at this point, so anyone can make up a new one
+ * per request: this tracker only serves the `default` throttler, and the `ip`
+ * throttler (see ThrottlingModule) caps the address whatever the token.
  */
 @Injectable()
 export class UserAwareThrottlerGuard extends ThrottlerGuard {

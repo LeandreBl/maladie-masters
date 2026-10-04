@@ -91,17 +91,21 @@ async function bootstrap() {
     }),
   );
 
+  // Bodies are parsed before any guard or throttler, on public routes too: the
+  // cap is what an anonymous caller can make the server parse per request. The
+  // largest legitimate body, a family with 2 × 2,000 picked cards, is ~170 kB.
+  //
   // Discord signs the exact bytes it sends: its endpoint keeps them aside, since
   // re-serializing the parsed JSON would not give them back.
   app.use(
     json({
-      limit: "10mb",
+      limit: "1mb",
       verify: (request: RawBodyRequest<IncomingMessage>, _response, buffer) => {
         if (request.url?.startsWith("/v1/discord/interactions")) request.rawBody = buffer;
       },
     }),
   );
-  app.use(urlencoded({ extended: true, limit: "10mb" }));
+  app.use(urlencoded({ extended: true, limit: "1mb" }));
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

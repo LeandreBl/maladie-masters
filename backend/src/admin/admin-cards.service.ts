@@ -12,6 +12,7 @@ import { RarityRankingService, type RankingResult } from "../cards/rarity-rankin
 import { AppException } from "../common/app.exception";
 import { ErrorCode } from "../common/error-code.enum";
 import { pageWindow } from "../common/pagination";
+import { familyName } from "../families/families.service";
 import { AuditAction, AuditService } from "../audit/audit.service";
 import { PrismaService } from "../prisma/prisma.service";
 import type {
@@ -128,7 +129,7 @@ export class AdminCardsService {
     const card = await this.find(cardId);
     const weekAgo = new Date(Date.now() - WEEK_MS);
 
-    const [copies, drops, drops7d] = await Promise.all([
+    const [copies, drops, drops7d, families] = await Promise.all([
       this.prisma.userCard.aggregate({
         where: { cardId },
         _sum: { quantity: true },
@@ -136,6 +137,11 @@ export class AdminCardsService {
       this.prisma.packOpeningCard.count({ where: { cardId } }),
       this.prisma.packOpeningCard.count({
         where: { cardId, opening: { createdAt: { gte: weekAgo } } },
+      }),
+      this.prisma.cardFamilyMember.findMany({
+        where: { cardId },
+        include: { family: true },
+        orderBy: { family: { position: "asc" } },
       }),
     ]);
 
@@ -162,6 +168,13 @@ export class AdminCardsService {
       drops,
       drops7d,
       lastSyncedAt: card.lastSyncedAt.toISOString(),
+      families: families.map(({ family }) => ({
+        id: family.id,
+        name: familyName(family, locale),
+        icon: family.icon,
+        bonusPoints: family.bonusPoints,
+        enabled: family.enabled,
+      })),
     };
   }
 

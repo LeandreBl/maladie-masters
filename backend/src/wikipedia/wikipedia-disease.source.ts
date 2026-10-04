@@ -90,6 +90,10 @@ interface WbEntitiesResponse {
   >;
 }
 
+interface WbLabelsResponse {
+  entities?: Record<string, { labels?: Record<string, { value: string }> }>;
+}
+
 /**
  * Where the diseases come from: Wikidata says which items are diseases and
  * which article each has on the French, English and Chinese Wikipedias; each
@@ -301,6 +305,51 @@ export class WikipediaDiseaseSource {
       await sleep(REQUEST_GAP_MS);
     }
 
+    return result;
+  }
+
+  /**
+   * Every item that is `qid` or, at any depth, a subclass of it or an
+   * instance of such a subclass: what a family's `wikidataClass` rule takes.
+   * Most diseases are classes in Wikidata, hence both paths.
+   */
+  async fetchClassMembers(qid: string): Promise<Set<string>> {
+    const rows = await this.sparql(`
+      SELECT DISTINCT ?item WHERE {
+        { ?item wdt:P279* wd:${qid} . } UNION { ?item wdt:P31/wdt:P279* wd:${qid} . }
+      }
+    `);
+    return new Set(
+      rows.flatMap((row) => {
+        const id = row.item?.value.split("/").pop();
+        return id ? [id] : [];
+      }),
+    );
+  }
+
+  /** Labels of a few items, in `locale`'s label language or a fallback. */
+  async fetchLabels(locale: AppLocale, qids: string[]): Promise<Map<string, string>> {
+    const language = WIKIS[locale].wikidataLanguage;
+    const result = new Map<string, string>();
+    for (const batch of chunk(qids, METADATA_BATCH)) {
+      const body = await this.http.getJson<WbLabelsResponse>(
+        "https://www.wikidata.org/w/api.php",
+        {
+          action: "wbgetentities",
+          format: "json",
+          ids: batch.join("|"),
+          props: "labels",
+          languages: language,
+          languagefallback: "1",
+          // No `maxlag`: a handful of labels for the admin panel is not the
+          // kind of load it exists to shed, and waiting on it stalls a preview.
+        },
+      );
+      for (const [qid, entity] of Object.entries(body.entities ?? {})) {
+        const value = entity.labels?.[language]?.value?.trim();
+        if (value) result.set(qid, value);
+      }
+    }
     return result;
   }
 

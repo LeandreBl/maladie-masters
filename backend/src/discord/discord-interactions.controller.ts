@@ -7,8 +7,10 @@ import { DiscordInteractionsService, type InteractionResponse } from "./discord-
 /**
  * The "Interactions Endpoint URL" of the Discord application: Discord POSTs
  * every slash command here, signed with the application's key. It is public
- * by nature, so the signature is the authentication. Not throttled: all of
- * Discord's traffic comes from a handful of addresses.
+ * by nature, so the signature is the authentication. Only the per-IP ceiling
+ * applies (`@SkipThrottle()` skips `default` alone): all of Discord's traffic
+ * comes from a handful of addresses, far below it, while a flood of forged
+ * requests from one address still meets it.
  *
  * Kept out of the OpenAPI document: only Discord calls it.
  */

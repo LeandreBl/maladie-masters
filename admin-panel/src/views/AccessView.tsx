@@ -81,11 +81,16 @@ export function AccessView() {
             {
               header: "",
               align: "right",
-              render: (row) => (
-                <Button className="btn-sm" onClick={() => setRemoving(row.email)}>
-                  {t.access.remove}
-                </Button>
-              ),
+              render: (row) =>
+                row.bootstrap ? (
+                  <span title={t.access.bootstrapHint}>
+                    <Tag tone="outline">{t.access.bootstrap}</Tag>
+                  </span>
+                ) : (
+                  <Button className="btn-sm" onClick={() => setRemoving(row.email)}>
+                    {t.access.remove}
+                  </Button>
+                ),
             },
           ]}
         />

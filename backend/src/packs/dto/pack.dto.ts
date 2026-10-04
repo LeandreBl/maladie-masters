@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PackSource, Rarity } from "@prisma/client";
-import { CardDto } from "../../cards/dto/card.dto";
+import { CardDto, FamilyBriefDto } from "../../cards/dto/card.dto";
 
 export class PackWalletDto {
   @ApiProperty({ description: "Packs that can be opened right now: natural + bonus." })
@@ -78,6 +78,13 @@ export class PackOpeningDto {
     description: "The wallet after the opening. Only on `POST /v1/me/packs/open`.",
   })
   wallet?: PackWalletDto;
+
+  @ApiPropertyOptional({
+    type: [FamilyBriefDto],
+    description:
+      "Families this pack's new cards completed: their bonus is now in the score. Only on `POST /v1/me/packs/open`.",
+  })
+  completedFamilies?: FamilyBriefDto[];
 }
 
 export class PackHistoryPageDto {

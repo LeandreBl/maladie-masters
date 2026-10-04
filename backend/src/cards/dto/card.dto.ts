@@ -7,6 +7,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   Max,
   MaxLength,
   Min,
@@ -52,6 +53,31 @@ export class CardDto {
   lang!: AppLocale;
 }
 
+export class FamilyBriefDto {
+  @ApiProperty({ format: "uuid" })
+  id!: string;
+
+  @ApiProperty({ example: "Cancers", description: "In the caller's language, English when it has none." })
+  name!: string;
+
+  @ApiProperty({ nullable: true, type: String, example: "🦀", description: "An emoji." })
+  icon!: string | null;
+
+  @ApiProperty({ description: "Added to the score once every droppable member is owned." })
+  bonusPoints!: number;
+}
+
+export class FamilyProgressDto extends FamilyBriefDto {
+  @ApiProperty({ description: "Droppable members owned." })
+  owned!: number;
+
+  @ApiProperty({ description: "Droppable members: owning them all completes the family." })
+  total!: number;
+
+  @ApiProperty()
+  completed!: boolean;
+}
+
 export class CardDetailDto extends CardDto {
   @ApiProperty({ nullable: true, type: String, description: "First sentences of the article, in `lang`." })
   extract!: string | null;
@@ -78,6 +104,9 @@ export class CardDetailDto extends CardDto {
 
   @ApiProperty({ description: "Players owning at least one copy." })
   ownersCount!: number;
+
+  @ApiProperty({ type: [FamilyBriefDto], description: "The families the card belongs to." })
+  families!: FamilyBriefDto[];
 }
 
 export class CollectionItemDto {
@@ -145,6 +174,11 @@ export class CollectionQueryDto extends PageQueryDto {
   @IsIn(COLLECTION_OWNED_FILTERS)
   owned?: CollectionOwnedFilter;
 
+  @ApiPropertyOptional({ format: "uuid", description: "Only the members of this family." })
+  @IsOptional()
+  @IsUUID()
+  family?: string;
+
   @ApiPropertyOptional({
     enum: COLLECTION_SORTS,
     default: "number",
@@ -182,8 +216,16 @@ export class CollectionSummaryDto {
   @ApiProperty({ description: "Share of the droppable catalog owned, 0-100." })
   completionPct!: number;
 
-  @ApiProperty({ description: "Rarity-weighted score used by the leaderboard." })
+  @ApiProperty({
+    description: "Leaderboard score: the rarity points of every distinct card owned, plus `familyBonus`.",
+  })
   score!: number;
+
+  @ApiProperty({ description: "Bonus points from the completed families, included in `score`." })
+  familyBonus!: number;
+
+  @ApiProperty({ description: "Families whose every droppable member is owned." })
+  familiesCompleted!: number;
 
   @ApiProperty({ type: [RarityProgressDto] })
   byRarity!: RarityProgressDto[];
@@ -215,6 +257,8 @@ export class LeaderboardEntryDto {
   @ApiProperty()
   uniqueOwned!: number;
 
-  @ApiProperty({ description: "Sum of the rarity points of every distinct card owned." })
+  @ApiProperty({
+    description: "Sum of the rarity points of every distinct card owned, plus the bonus of every completed family.",
+  })
   score!: number;
 }

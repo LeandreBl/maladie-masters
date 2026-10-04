@@ -1,7 +1,8 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { RARITIES_DESC, type PackOpening, type Rarity } from "../api/types";
 import { useI18n } from "../i18n/I18nProvider";
 import { prefersReducedMotion, useMediaQuery } from "../lib/hooks";
+import { playCharge, playFlip, playLand, playPackDrop, setSoundEnabled, stopAll, useSoundEnabled } from "../lib/sound";
 import { CardTile } from "./CardTile";
 
 type Entry = PackOpening["cards"][number];
@@ -41,8 +42,10 @@ export function sortForReveal(cards: Entry[]): Entry[] {
  * every card: the suspense is purely a matter of presentation. The player
  * flips them one at a time by tapping the stack (or with Space / Enter). An
  * epic, a legendary or a shiny first charges up, with the input locked, then
- * lands with rays, rings, particles and a flash. Once the last card is up, the
- * summary lays out the whole pack.
+ * lands with rays, rings, particles and a flash. The last card stays up, alone
+ * and centred, until the player clicks outside it — players screenshot their
+ * best card — and only then comes the summary, which a click outside closes.
+ * There is no skipping ahead: every card is turned by hand.
  *
  * Every effect is an imperative Web Animations call on a ref, so a React
  * re-render never restarts one.
@@ -76,9 +79,13 @@ export function PackReveal({
   const cards = useMemo(() => sortForReveal(opening.cards), [opening.cards]);
   const [revealed, setRevealed] = useState(0);
   const [phase, setPhase] = useState<"reveal" | "summary">("reveal");
+  // The last card has landed: the summary can be asked for. Not earlier, so
+  // the tap that turned it cannot also send it away.
+  const [ready, setReady] = useState(false);
   const narrow = useMediaQuery("(max-width: 420px)");
   const cardWidth = narrow ? 260 : 330;
   const reduced = useMemo(prefersReducedMotion, []);
+  const sound = useSoundEnabled();
 
   const dim = useRef<HTMLDivElement>(null);
   const rays = useRef<HTMLDivElement>(null);
@@ -190,6 +197,7 @@ export function PackReveal({
     const shiny = kind === "SHINY";
     const legendary = kind === "LEGENDARY" || shiny;
     const duration = shiny ? 1550 : legendary ? 1150 : 560;
+    playCharge(kind, duration);
     const hex = shiny ? SHINY_HEX : HEX[kind];
     const amplitude = shiny ? 11 : legendary ? 9 : 5;
     const steps = legendary ? 18 : 10;
@@ -253,11 +261,15 @@ export function PackReveal({
           : rare
             ? FLIP_MS * 1.15
             : FLIP_MS;
-    const toSummaryIn = shiny ? 3000 : legendary ? 2600 : epic ? 2000 : 1100;
+    const readyIn = shiny ? 3000 : legendary ? 2600 : epic ? 2000 : 1100;
+    const markReady = () => setReady(true);
+
+    playFlip();
+    playLand(rarity, shiny);
 
     if (reduced) {
       cardEl.current?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150 });
-      if (last) later(toSummary, toSummaryIn);
+      if (last) later(markReady, readyIn);
       return;
     }
 
@@ -345,13 +357,16 @@ export function PackReveal({
       );
     }
 
-    if (last) later(toSummary, toSummaryIn);
+    if (last) later(markReady, readyIn);
   }
 
   function flip() {
     if (phase !== "reveal" || locked.current) return;
     const index = revealedRef.current;
-    if (index >= cards.length) return;
+    if (index >= cards.length) {
+      if (ready) toSummary();
+      return;
+    }
     const entry = cards[index];
     const advance = () => {
       revealedRef.current = index + 1;
@@ -372,6 +387,15 @@ export function PackReveal({
     }
   }
 
+  /** A click on the backdrop: on to the summary, then out. Cards and buttons
+   * keep their own clicks. */
+  function onBackdropClick(event: MouseEvent) {
+    if (paused) return;
+    if ((event.target as Element).closest(".mm-card, button, a")) return;
+    if (phase === "summary") onClose();
+    else if (ready) toSummary();
+  }
+
   // The window listener always calls the latest `flip`.
   const flipRef = useRef(flip);
   flipRef.current = flip;
@@ -389,6 +413,7 @@ export function PackReveal({
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     stack.current?.focus({ preventScroll: true });
+    playPackDrop();
     if (!reduced) {
       stack.current?.animate(
         [
@@ -401,6 +426,7 @@ export function PackReveal({
     return () => {
       document.body.style.overflow = previous;
       clearTimers();
+      stopAll();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -438,15 +464,22 @@ export function PackReveal({
   const remaining = cards.length - revealed;
 
   return (
-    <div className="reveal" role="dialog" aria-modal="true" aria-label={t.packs.open}>
+    <div className="reveal" role="dialog" aria-modal="true" aria-label={t.packs.open} onClick={onBackdropClick}>
       <div ref={dim} className="fx-layer reveal-dim" />
       <div className="reveal-top">
         <span className="logo">{t.appName}</span>
-        {phase === "reveal" ? (
-          <button type="button" className="reveal-skip" onClick={toSummary}>
-            {t.packs.revealAll}
+        <div className="reveal-tools">
+          <button
+            type="button"
+            className="reveal-sound"
+            aria-pressed={sound}
+            aria-label={sound ? t.packs.soundOff : t.packs.soundOn}
+            title={sound ? t.packs.soundOff : t.packs.soundOn}
+            onClick={() => setSoundEnabled(!sound)}
+          >
+            {sound ? "🔊" : "🔇"}
           </button>
-        ) : null}
+        </div>
       </div>
 
       {phase === "reveal" ? (
@@ -474,33 +507,34 @@ export function PackReveal({
               <div ref={fx} className="fx-layer reveal-fx" />
             </div>
 
-            <div className="reveal-side">
-              <div className="reveal-pile">
-                <div ref={stackGlow} className="fx-layer reveal-sglow" />
-                <button
-                  ref={stack}
-                  type="button"
-                  className="reveal-stack"
-                  aria-label={t.packs.tapToReveal}
-                  onClick={flip}
-                >
-                  {Array.from({ length: remaining }, (_, i) => (
-                    <span
-                      key={i}
-                      className="card-back"
-                      style={{ transform: `translate(${i * 3}px, ${-i * 3}px) rotate(${(i - 2) * 0.8}deg)` }}
-                    >
-                      <span>MM</span>
-                    </span>
-                  ))}
-                </button>
-              </div>
-              {remaining > 0 ? (
+            {/* Gone with the last card, so that card stands alone in the centre. */}
+            {remaining > 0 ? (
+              <div className="reveal-side">
+                <div className="reveal-pile">
+                  <div ref={stackGlow} className="fx-layer reveal-sglow" />
+                  <button
+                    ref={stack}
+                    type="button"
+                    className="reveal-stack"
+                    aria-label={t.packs.tapToReveal}
+                    onClick={flip}
+                  >
+                    {Array.from({ length: remaining }, (_, i) => (
+                      <span
+                        key={i}
+                        className="card-back"
+                        style={{ transform: `translate(${i * 3}px, ${-i * 3}px) rotate(${(i - 2) * 0.8}deg)` }}
+                      >
+                        <span>MM</span>
+                      </span>
+                    ))}
+                  </button>
+                </div>
                 <p className="reveal-hint">
                   {t.packs.tapToReveal} · {t.packs.remaining(remaining)}
                 </p>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="reveal-dots">
@@ -523,6 +557,12 @@ export function PackReveal({
                 ✦ {t.packs.shinyCount(cards.filter((entry) => entry.isShiny).length)}
               </span>
             ) : null}
+            {/* Only in the summary: shown during the reveal, it would give away which cards are coming. */}
+            {opening.completedFamilies?.map((family) => (
+              <span key={family.id} className="family-done-pill">
+                {family.icon ?? "◆"} {t.packs.familyCompleted(family.name, family.bonusPoints)}
+              </span>
+            ))}
           </div>
           <div ref={summary} className="reveal-summary-cards">
             {cards.map((entry) => (

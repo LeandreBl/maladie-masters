@@ -30,7 +30,10 @@ export type CollectionSummary = {
   shinyOwned: number;
   catalogSize: number;
   completionPct: number;
+  /** Rarity points plus `familyBonus`: what the leaderboard ranks on. */
   score: number;
+  familyBonus: number;
+  familiesCompleted: number;
   byRarity: Array<{ rarity: Rarity; owned: number; total: number }>;
 };
 
@@ -70,6 +73,22 @@ export type CardDetail = Card & {
   firstObtainedAt: string | null;
   ownersCount: number;
   languages: Locale[];
+  families: FamilyBrief[];
+};
+
+/** A themed set of cards: owning every droppable member adds `bonusPoints` to the score. */
+export type FamilyBrief = {
+  id: string;
+  name: string;
+  /** An emoji. */
+  icon: string | null;
+  bonusPoints: number;
+};
+
+export type FamilyProgress = FamilyBrief & {
+  owned: number;
+  total: number;
+  completed: boolean;
 };
 
 export type CollectionItem = {
@@ -96,6 +115,8 @@ export type PackOpening = {
   /** `isShiny`: a one-in-10,000 copy, any rarity, shown with its special effect. */
   cards: Array<{ slot: number; rarity: Rarity; isNew: boolean; isShiny: boolean; card: Card }>;
   wallet?: PackWallet;
+  /** Families this pack's new cards completed. Only on the opening itself. */
+  completedFamilies?: FamilyBrief[];
 };
 
 export type LeaderboardEntry = {

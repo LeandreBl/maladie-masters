@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { CardThumb, RarityTag } from "../components/RarityTag";
 import { Button } from "../components/ui/Button";
 import { InsetTile } from "../components/ui/Card";
@@ -147,6 +148,28 @@ export function CardDialog({
                 </span>
               </div>
             ))}
+          </div>
+
+          <div className="grid gap-2 border-t border-divider pt-4">
+            <div className="eyebrow text-muted">{t.cardDetail.familiesTitle}</div>
+            {data.families.length === 0 ? (
+              <span className="text-sm text-muted">{t.cardDetail.noFamilies}</span>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {data.families.map((family) => (
+                  <Link
+                    key={family.id}
+                    to={`/admin/families/${family.id}`}
+                    className="tag tag-outline hover:text-accent"
+                    onClick={onClose}
+                  >
+                    {family.icon ? `${family.icon} ` : ""}
+                    {family.name}
+                    {family.enabled ? "" : ` (${t.cardDetail.hiddenFamily})`}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid gap-4 border-t border-divider pt-4">

@@ -13,6 +13,10 @@ export const AuditAction = {
   PacksRefilled: "packs.refilled",
   CardUnlocked: "card.unlocked",
   CardLocked: "card.locked",
+  CardsRemoved: "cards.removed",
+  CollectionReset: "collection.reset",
+  CollectionsReset: "collections.reset",
+  UserDeleted: "user.deleted",
   UserSuspended: "user.suspended",
   UserReactivated: "user.reactivated",
   AdminGranted: "admin.granted",
@@ -21,6 +25,10 @@ export const AuditAction = {
   SettingsUpdated: "settings.updated",
   SyncStarted: "sync.started",
   RaritiesRecomputed: "rarities.recomputed",
+  FamilyCreated: "family.created",
+  FamilyUpdated: "family.updated",
+  FamilyDeleted: "family.deleted",
+  FamiliesResolved: "families.resolved",
 } as const;
 
 export type AuditActionName = (typeof AuditAction)[keyof typeof AuditAction];

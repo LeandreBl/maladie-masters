@@ -17,6 +17,11 @@ export class AdminGrantDto {
 
   @ApiProperty({ description: "Whether a player has signed in with this address." })
   hasSignedIn!: boolean;
+
+  @ApiProperty({
+    description: "Granted by the ADMINS variable: the panel can neither revoke it nor delete its account.",
+  })
+  bootstrap!: boolean;
 }
 
 export class AdminRemovalDto {

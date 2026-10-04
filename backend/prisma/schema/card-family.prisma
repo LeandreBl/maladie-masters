@@ -1,0 +1,49 @@
+/// A themed set of cards — cancers, mental disorders, STIs… — picked by rules
+/// an admin writes in the panel. Owning every droppable member gives the
+/// player `bonusPoints` on top of their rarity score.
+model CardFamily {
+    id          String  @id @default(uuid())
+    /// `{ en, fr?, zh? }`: English is required, the others fall back to it.
+    names       Json
+    /// An emoji, shown next to the name.
+    icon        String?
+    bonusPoints Int     @default(0) @map("bonus_points")
+    /// A disabled family is hidden from players and gives no bonus.
+    enabled     Boolean @default(true)
+    /// Order in the lists, smallest first.
+    position    Int     @default(0)
+
+    /// `any`: a card matching one include rule is in; `all`: it must match
+    /// every one of them.
+    match           String   @default("any")
+    /// `[{ field, pattern, locale?, exclude? }]`, see src/families/family-rules.ts.
+    rules           Json     @default("[]")
+    /// Cards an admin put in or took out by hand, whatever the rules say.
+    includedCardIds String[] @default([]) @map("included_card_ids")
+    excludedCardIds String[] @default([]) @map("excluded_card_ids")
+
+    /// When the rules were last turned into `members`, and why it failed if it did.
+    resolvedAt   DateTime? @map("resolved_at")
+    resolveError String?   @map("resolve_error")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    members CardFamilyMember[]
+
+    @@map("card_families")
+}
+
+/// The rules of a family, resolved: rewritten whenever the family is saved
+/// and after every sync, so that player queries are plain joins.
+model CardFamilyMember {
+    familyId String @map("family_id")
+    cardId   String @map("card_id")
+
+    family CardFamily @relation(fields: [familyId], references: [id], onDelete: Cascade)
+    card   Card       @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+    @@id([familyId, cardId])
+    @@index([cardId])
+    @@map("card_family_members")
+}

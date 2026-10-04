@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Layers,
   LogOut,
+  Puzzle,
   Search,
   ShieldCheck,
   SlidersHorizontal,
@@ -66,6 +67,7 @@ export function AdminShell({
         eyebrow: t.common.configure,
         links: [
           { to: "/admin/settings", label: t.nav.settings, icon: SlidersHorizontal },
+          { to: "/admin/families", label: t.nav.families, icon: Puzzle },
           { to: "/admin/access", label: t.nav.access, icon: ShieldCheck },
         ],
       },

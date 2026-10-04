@@ -4,6 +4,7 @@ import {
   RARITIES_DESC,
   type CollectionItem,
   type CollectionSort,
+  type FamilyProgress,
   type OwnedFilter,
   type Page,
   type Rarity,
@@ -29,6 +30,8 @@ export function CollectionPage() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<CollectionSort>("number");
   const [page, setPage] = useState(1);
+  const [family, setFamily] = useState("");
+  const [families, setFamilies] = useState<FamilyProgress[] | null>(null);
   const [data, setData] = useState<Page<CollectionItem> | null>(null);
   const [openCard, setOpenCard] = useState<string | null>(null);
   // Bumped when an admin adds or removes a card, to re-read the page.
@@ -37,23 +40,41 @@ export function CollectionPage() {
   const cardWidth = useMediaQuery("(max-width: 640px)") ? 156 : 176;
 
   useRealtimeEvent((message) => {
-    if (["card.granted", "card.removed", "realtime.resync"].includes(message.type)) {
+    if (["card.granted", "card.removed", "collection.reset", "families.updated", "realtime.resync"].includes(message.type)) {
       setVersion((current) => current + 1);
     }
   });
 
-  useEffect(() => setPage(1), [owned, rarity, search, sort]);
+  useEffect(() => setPage(1), [owned, rarity, search, sort, family]);
+
+  // `me.collection` too: a pack or a grant moves the progress.
+  useEffect(() => {
+    void api.families(user).then(setFamilies).catch(() => setFamilies([]));
+  }, [user, me.locale, me.collection, version]);
+
+  // A family the admin just hid or deleted stops filtering.
+  useEffect(() => {
+    if (family && families && !families.some((entry) => entry.id === family)) setFamily("");
+  }, [family, families]);
 
   // `me.locale` in the dependencies: the names come back in the account's
   // language, so changing it re-reads the page.
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void api
-        .collection(user, { page, pageSize: PAGE_SIZE, owned, rarity: rarity || undefined, search, sort })
+        .collection(user, {
+          page,
+          pageSize: PAGE_SIZE,
+          owned,
+          rarity: rarity || undefined,
+          search,
+          sort,
+          family: family || undefined,
+        })
         .then(setData);
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [user, page, owned, rarity, search, sort, me.locale, version]);
+  }, [user, page, owned, rarity, search, sort, family, me.locale, version]);
 
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
   const { collection } = me;
@@ -96,6 +117,40 @@ export function CollectionPage() {
           </button>
         ))}
       </div>
+
+      {families && families.length > 0 ? (
+        <section className="families" aria-label={t.collection.families}>
+          <div className="families-head">
+            <span className="overline">{t.collection.families}</span>
+            <span className="muted">{t.collection.familyHelp}</span>
+          </div>
+          <div className="family-filters">
+            {families.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                className={`family-filter${entry.completed ? " done" : ""}${family === entry.id ? " on" : ""}`}
+                aria-pressed={family === entry.id}
+                onClick={() => setFamily(family === entry.id ? "" : entry.id)}
+              >
+                <span className="family-icon" aria-hidden="true">
+                  {entry.icon ?? "◆"}
+                </span>
+                <span className="family-text">
+                  <span className="family-name">{entry.name}</span>
+                  <span className="mono">
+                    {t.collection.familyProgress(entry.owned, entry.total)} ·{" "}
+                    {entry.completed ? `✓ ${t.collection.familyDone}` : t.collection.familyBonus(entry.bonusPoints)}
+                  </span>
+                </span>
+                <span className="bar">
+                  <span style={{ width: `${Math.max(1.5, entry.total ? (entry.owned / entry.total) * 100 : 0)}%` }} />
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="panel toolbar">
         <div className="tabs" role="group">

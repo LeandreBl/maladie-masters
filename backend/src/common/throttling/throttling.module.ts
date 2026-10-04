@@ -8,10 +8,17 @@ import { UserAwareThrottlerGuard } from "./user-aware-throttler.guard";
 /**
  * Global rate limiting.
  *
- * One throttler is configured rather than several named ones: `@nestjs/throttler`
- * applies *every* declared throttler to *every* route, so a limit meant for one
- * expensive route would end up imposed on the whole API. Routes that deserve
- * something stricter override the `default` throttler instead.
+ * `@nestjs/throttler` applies *every* declared throttler to *every* route, so a
+ * limit meant for one expensive route would end up imposed on the whole API.
+ * Routes that deserve something stricter override the `default` throttler
+ * instead. Two are declared:
+ *
+ * - `default`, per caller and per route (see `UserAwareThrottlerGuard`);
+ * - `ip`, one counter per address across the whole API. The `default` tracker
+ *   comes from the bearer token before it is verified, so a client sending a
+ *   new made-up token on every request would get a fresh counter each time:
+ *   this ceiling is what such a client still runs into. Generous, because a
+ *   school or an office shares one address.
  */
 
 /**
@@ -41,6 +48,15 @@ export function ThrottlePacks(): MethodDecorator & ClassDecorator {
           name: "default",
           ttl: seconds(60),
           limit: config.get("THROTTLE_DEFAULT_PER_MINUTE", { infer: true }),
+        },
+        {
+          name: "ip",
+          ttl: seconds(60),
+          limit: config.get("THROTTLE_IP_PER_MINUTE", { infer: true }),
+          getTracker: (request) => `ip:${request.ip ?? "unknown"}`,
+          // The default key also holds the route: one counter for the whole
+          // API instead, or the ceiling would multiply by the number of routes.
+          generateKey: (_context, tracker, name) => `${name}-${tracker}`,
         },
       ],
     }),

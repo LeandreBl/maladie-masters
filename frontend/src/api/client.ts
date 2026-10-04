@@ -6,6 +6,7 @@ import type {
   CollectionSort,
   DiscordLinkCode,
   DiscordStatus,
+  FamilyProgress,
   LeaderboardEntry,
   OwnedFilter,
   Me,
@@ -77,8 +78,10 @@ export const api = {
       rarity?: Rarity;
       owned?: OwnedFilter;
       sort?: CollectionSort;
+      family?: string;
     },
   ) => request<Page<CollectionItem>>(user, `/v1/me/collection${query(params)}`),
+  families: (user: User) => request<FamilyProgress[]>(user, "/v1/me/families"),
   card: (user: User, id: string) => request<CardDetail>(user, `/v1/cards/${id}`),
   discord: (user: User) => request<DiscordStatus>(user, "/v1/me/discord"),
   discordLinkCode: (user: User) =>

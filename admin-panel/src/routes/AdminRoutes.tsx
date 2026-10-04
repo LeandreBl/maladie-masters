@@ -11,6 +11,8 @@ import type { Me } from "../lib/api";
 import { AccessView } from "../views/AccessView";
 import { CardsView } from "../views/CardsView";
 import { DashboardView } from "../views/DashboardView";
+import { FamiliesView } from "../views/FamiliesView";
+import { FamilyEditorView } from "../views/FamilyEditorView";
 import { SettingsView } from "../views/SettingsView";
 import { SyncView } from "../views/SyncView";
 import { UserDetailView } from "../views/UserDetailView";
@@ -59,6 +61,9 @@ function AdminChrome({ admin }: { admin: Me }) {
     if (pathname.startsWith("/admin/settings")) {
       return { crumb: t.crumbs.settings, title: t.nav.settings };
     }
+    if (pathname.startsWith("/admin/families")) {
+      return { crumb: t.crumbs.families, title: t.nav.families };
+    }
     if (pathname.startsWith("/admin/access")) return { crumb: t.crumbs.access, title: t.nav.access };
     return { crumb: t.crumbs.dashboard, title: t.nav.dashboard };
   }, [pathname, t]);
@@ -86,6 +91,9 @@ function AdminChrome({ admin }: { admin: Me }) {
         <Route path="cards" element={<CardsView search={search} />} />
         <Route path="sync" element={<SyncView />} />
         <Route path="settings" element={<SettingsView />} />
+        <Route path="families" element={<FamiliesView />} />
+        <Route path="families/new" element={<FamilyEditorView />} />
+        <Route path="families/:familyId" element={<FamilyEditorView />} />
         <Route path="access" element={<AccessView />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Routes>

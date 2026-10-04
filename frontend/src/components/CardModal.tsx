@@ -82,6 +82,17 @@ export function CardModal({ cardId, onClose }: { cardId: string; onClose: () => 
                 <span className="muted">{t.card.icd10} :</span> <span className="mono">{card.icd10.join(", ")}</span>
               </p>
             ) : null}
+            {card.families.length > 0 ? (
+              <div className="modal-families" lang={locale}>
+                <span className="muted">{t.card.families} :</span>
+                {card.families.map((family) => (
+                  <span key={family.id} className="chip">
+                    {family.icon ? `${family.icon} ` : ""}
+                    {family.name}
+                  </span>
+                ))}
+              </div>
+            ) : null}
             <div className="modal-actions" lang={locale}>
               <a href={card.wikipediaUrl} target="_blank" rel="noreferrer">
                 {t.card.readOnWikipedia}

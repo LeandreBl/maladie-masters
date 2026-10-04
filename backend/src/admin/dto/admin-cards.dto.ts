@@ -10,7 +10,7 @@ import {
   MaxLength,
   ValidateIf,
 } from "class-validator";
-import { CardDto } from "../../cards/dto/card.dto";
+import { CardDto, FamilyBriefDto } from "../../cards/dto/card.dto";
 import { LOCALES, type AppLocale } from "../../common/locale";
 import { PageQueryDto } from "../../common/pagination";
 
@@ -101,6 +101,10 @@ export class CardLocalizationDto {
   @ApiProperty({ description: "Views of this language's article alone." }) pageviews!: number;
 }
 
+export class AdminCardFamilyDto extends FamilyBriefDto {
+  @ApiProperty() enabled!: boolean;
+}
+
 export class AdminCardDetailDto extends AdminCardDto {
   @ApiProperty({ nullable: true, type: String, description: "In `lang`." }) extract!: string | null;
   @ApiProperty({ type: [CardLocalizationDto], description: "Every language, in the fallback order." })
@@ -110,6 +114,8 @@ export class AdminCardDetailDto extends AdminCardDto {
   @ApiProperty({ description: "Times it came out of a pack." }) drops!: number;
   @ApiProperty() drops7d!: number;
   @ApiProperty({ format: "date-time" }) lastSyncedAt!: string;
+  @ApiProperty({ type: [AdminCardFamilyDto], description: "Every family it belongs to, hidden ones included." })
+  families!: AdminCardFamilyDto[];
 }
 
 export class UpdateAdminCardDto {

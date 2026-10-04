@@ -34,6 +34,7 @@ model Card {
     localizations CardLocalization[]
     owners        UserCard[]
     drops         PackOpeningCard[]
+    families      CardFamilyMember[]
 
     @@index([rarity, enabled])
     @@index([pageviews])

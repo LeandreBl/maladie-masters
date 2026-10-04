@@ -8,6 +8,7 @@ import {
 import { RarityRankingService } from "../cards/rarity-ranking.service";
 import { AppException } from "../common/app.exception";
 import { ErrorCode } from "../common/error-code.enum";
+import { FamiliesService } from "../families/families.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { RealtimeService } from "../realtime/realtime.service";
 import { GameSettingsService } from "../settings/game-settings.service";
@@ -145,6 +146,7 @@ export class DiseaseSyncService {
     private readonly ranking: RarityRankingService,
     private readonly settings: GameSettingsService,
     private readonly realtime: RealtimeService,
+    private readonly families: FamiliesService,
   ) {}
 
   /** The Wikipedias the catalog is built from. */
@@ -376,6 +378,15 @@ export class DiseaseSyncService {
     const ranking = await this.ranking.recompute();
     await report.log(
       `Rarities recomputed over ${ranking.ranked} cards (${ranking.changed} changed)`,
+    );
+
+    // 6. New cards may belong to a family; a Wikidata class may have grown.
+    // A family whose rules fail keeps its members, so this never fails the run.
+    await report.setPhase("Resolving families", true);
+    const families = await this.families.resolveAll({ fresh: true });
+    await report.log(
+      `${families.resolved} families resolved` +
+        (families.failed > 0 ? `, ${families.failed} kept as they were` : ""),
     );
   }
 

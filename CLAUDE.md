@@ -42,6 +42,10 @@ Règles par défaut, toutes réglables dans le panel admin (table `game_settings
   disponible la plus proche, vers le bas d'abord (`nearestAvailable`). Il ne
   tire jamais au hasard parmi toutes les raretés.
 - **Paquets bonus** : donnés par un admin, hors plafond.
+- **Familles** (`CardFamily`) : un ensemble de cartes sur un thème, défini par
+  des règles éditées dans le panel. Posséder tous les membres **qui peuvent
+  tomber** ajoute `bonusPoints` au score (`familyBonusSql`, partagé par le
+  résumé et le classement). Une famille sans membre jouable ne se complète pas.
 - **Raretés** : COMMON < UNCOMMON < RARE < EPIC < LEGENDARY. Les parts du
   catalogue sont 1/4/10/25 % du haut du classement de popularité ; le reste est
   COMMON.
@@ -92,6 +96,21 @@ Fichiers compose :
   (`nameSearch`) et tri par nom localisé (`pageIdsByName`, en SQL brut).
 - `src/cards/rarity.ts` et `src/packs/pack-wallet.ts` : les règles du jeu en
   fonctions pures, testées.
+- `src/families/` : les familles.
+  - `family-rules.ts` : les règles en fonctions pures, testées. L'ordre de
+    priorité est : retrait manuel, ajout manuel, règle d'exclusion, puis règles
+    d'inclusion (`any`/`all`). `\b` est traduit en `\y` pour PostgreSQL.
+  - `family-matcher.service.ts` évalue les règles : regex en SQL (`~*`, avec un
+    `statement_timeout`), classes Wikidata via SPARQL (`P279*`, en cache
+    30 min). Une règle invalide est signalée et ne matche rien.
+  - Les membres sont **matérialisés** dans `card_family_members`. Ils sont
+    réécrits à l'enregistrement de la famille et à la fin de chaque import
+    (étape « Resolving families »). Si une règle échoue (Wikidata en panne), les
+    anciens membres sont gardés et `resolveError` est renseigné.
+  - L'aperçu admin (`POST /v1/admin/families/preview`) n'écrit rien. Un
+    enregistrement avec une règle invalide est refusé (`INVALID_FAMILY_RULE`).
+  - L'ouverture d'un paquet renvoie `completedFamilies`. Le front ne l'affiche
+    que dans le récapitulatif, jamais pendant la révélation.
 - La minuterie des paquets est calculée à la lecture : `packsStored` est exact
   à `packsAnchorAt`, il n'y a aucun job. L'ouverture verrouille la ligne
   `users` (`SELECT … FOR UPDATE`).
@@ -168,6 +187,8 @@ Fichiers compose :
 - `PackOpening` / `PackOpeningCard` (la rareté est figée au moment du tirage),
   `AdminAuditEntry`, `DiseaseSyncRun` (phase, compteurs, log JSON),
   `GameSettings` (une seule ligne, `id = "global"`), `AdminGrant` (par email).
+- `CardFamily` (noms JSON `{ en, fr?, zh? }`, règles JSON, ajouts et retraits
+  manuels) et `CardFamilyMember` (les membres résolus).
 - `DiscordAccount` (un compte Discord par joueur), `DiscordLinkCode`,
   `DiscordGuild` (un par serveur) et `DiscordChannel` (ses
   salons d'annonce).

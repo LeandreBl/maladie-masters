@@ -11,7 +11,10 @@ export type RealtimeEvent =
   | { type: "packs.refilled"; data: { wallet: PackWallet } }
   | { type: "card.granted"; data: { cardId: string; quantity: number; shiny: boolean } }
   | { type: "card.removed"; data: { cardId: string } }
+  | { type: "collection.reset"; data: Record<string, never> }
   | { type: "settings.updated"; data: Record<string, never> }
+  /** A family was created, edited or deleted: progress and score may move. */
+  | { type: "families.updated"; data: Record<string, never> }
   /**
    * Events may have been missed: sent by the relay after a Redis outage, and
    * by this client after it reconnects.

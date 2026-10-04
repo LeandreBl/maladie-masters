@@ -4,6 +4,7 @@ import { AppException } from "../common/app.exception";
 import { ErrorCode } from "../common/error-code.enum";
 import type { AppLocale } from "../common/locale";
 import { pageWindow } from "../common/pagination";
+import { FamiliesService, familyBonusSql } from "../families/families.service";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   CARD_INCLUDE,
@@ -40,7 +41,10 @@ const SCORE_SQL = Prisma.raw(
  */
 @Injectable()
 export class CollectionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly families: FamiliesService,
+  ) {}
 
   /**
    * The catalog, with the player's copies attached.
@@ -69,6 +73,11 @@ export class CollectionService {
     }
     if (query.rarity) {
       filters.push({ rarity: query.rarity });
+    }
+    if (query.family) {
+      filters.push({
+        families: { some: { familyId: query.family, family: { enabled: true } } },
+      });
     }
     if (owned === "owned") {
       filters.push({ owners: { some: { userId } } });
@@ -167,11 +176,12 @@ export class CollectionService {
       );
     }
 
-    const [copy, ownersCount] = await Promise.all([
+    const [copy, ownersCount, families] = await Promise.all([
       this.prisma.userCard.findUnique({
         where: { userId_cardId: { userId, cardId } },
       }),
       this.prisma.userCard.count({ where: { cardId } }),
+      this.families.familiesOf(cardId, locale),
     ]);
 
     // Same rule as the listing: an unobtainable card is private to its owners.
@@ -195,11 +205,12 @@ export class CollectionService {
       shinyQuantity: copy?.shinyQuantity ?? 0,
       firstObtainedAt: copy?.firstObtainedAt.toISOString() ?? null,
       ownersCount,
+      families,
     };
   }
 
   async summary(userId: string): Promise<CollectionSummaryDto> {
-    const [catalog, owned] = await Promise.all([
+    const [catalog, owned, bonus] = await Promise.all([
       this.prisma.card.groupBy({
         by: ["rarity"],
         where: DROPPABLE,
@@ -226,6 +237,7 @@ export class CollectionService {
         WHERE uc.user_id = ${userId}
         GROUP BY c.rarity
       `,
+      this.families.bonus(userId),
     ]);
 
     const catalogBy = new Map(catalog.map((row) => [row.rarity, row._count._all]));
@@ -243,7 +255,9 @@ export class CollectionService {
         catalogSize > 0
           ? Math.round((ownedDroppable / catalogSize) * 1000) / 10
           : 0,
-      score: owned.reduce((sum, row) => sum + row.score, 0),
+      score: owned.reduce((sum, row) => sum + row.score, 0) + bonus.points,
+      familyBonus: bonus.points,
+      familiesCompleted: bonus.completed,
       byRarity: [...RARITIES].reverse().map((rarity) => ({
         rarity,
         owned: ownedBy.get(rarity)?.owned ?? 0,
@@ -262,16 +276,24 @@ export class CollectionService {
         score: number;
       }>
     >`
+      WITH owned AS (
+        SELECT uc.user_id,
+               COUNT(*)::int AS "uniqueOwned",
+               SUM(${SCORE_SQL})::int AS "score"
+        FROM user_cards uc
+        JOIN cards c ON c.id = uc.card_id
+        GROUP BY uc.user_id
+      ),
+      bonus AS (${familyBonusSql()})
       SELECT u.id AS "userId",
              u.display_name AS "displayName",
              u.photo_url AS "photoUrl",
-             COUNT(*)::int AS "uniqueOwned",
-             SUM(${SCORE_SQL})::int AS "score"
-      FROM user_cards uc
-      JOIN cards c ON c.id = uc.card_id
-      JOIN users u ON u.id = uc.user_id
+             owned."uniqueOwned",
+             (owned."score" + COALESCE(bonus."bonus", 0))::int AS "score"
+      FROM owned
+      JOIN users u ON u.id = owned.user_id
+      LEFT JOIN bonus ON bonus.user_id = owned.user_id
       WHERE u.suspended_at IS NULL
-      GROUP BY u.id
       ORDER BY "score" DESC, "uniqueOwned" DESC, u.created_at ASC
       LIMIT ${limit}
     `;

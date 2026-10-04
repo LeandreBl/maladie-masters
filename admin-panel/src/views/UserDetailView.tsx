@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { CardThumb, RarityTag, rarityColors } from "../components/RarityTag";
 import { Avatar } from "../components/ui/Avatar";
 import { Button } from "../components/ui/Button";
@@ -13,10 +13,14 @@ import { MiniStatCard } from "../components/ui/StatCard";
 import { Table } from "../components/ui/Table";
 import { Tag } from "../components/ui/Tag";
 import {
+  DeleteUserDialog,
   GrantPacksDialog,
+  RemoveCopiesDialog,
+  ResetCollectionDialog,
   SuspendDialog,
   UnlockCardDialog,
 } from "../dialogs/PlayerDialogs";
+import { useAdminSession } from "../auth-context";
 import { useAdminAction, useAdminResource } from "../hooks/use-admin-resource";
 import { onPlayer } from "../lib/live";
 import { useAuditLabel, useLocale, useT } from "../i18n";
@@ -25,12 +29,14 @@ import { adminApi, type AdminUserDetail, type CollectionItem, type Rarity, RARIT
 import { playerInitials, playerName } from "../lib/display";
 import { formatDate, formatDateTime, formatNumber, formatRelative } from "../lib/format";
 
-type Dialog = "grant" | "refill" | "unlock" | "suspend" | "reactivate" | null;
+type Dialog = "grant" | "refill" | "unlock" | "suspend" | "reactivate" | "reset" | "delete" | null;
 
 export function UserDetailView() {
   const { userId = "" } = useParams();
   const t = useT();
   const { intlLocale } = useLocale();
+  const navigate = useNavigate();
+  const { admin } = useAdminSession();
   const [dialog, setDialog] = useState<Dialog>(null);
   const [cardsVersion, setCardsVersion] = useState(0);
   const { run, busy } = useAdminAction();
@@ -103,11 +109,17 @@ export function UserDetailView() {
           </Button>
           <Button onClick={() => setDialog("refill")}>{t.userDetail.refill}</Button>
           <Button onClick={() => setDialog("unlock")}>{t.userDetail.unlockCard}</Button>
+          <Button onClick={() => setDialog("reset")}>{t.userDetail.resetCollection}</Button>
           {data.suspendedAt ? (
             <Button onClick={() => setDialog("reactivate")}>{t.userDetail.reactivate}</Button>
           ) : data.role !== "ADMIN" ? (
             <Button variant="danger" onClick={() => setDialog("suspend")}>
               {t.userDetail.suspend}
+            </Button>
+          ) : null}
+          {data.id !== admin?.id ? (
+            <Button variant="danger" onClick={() => setDialog("delete")}>
+              {t.userDetail.deleteAccount}
             </Button>
           ) : null}
         </div>
@@ -180,6 +192,23 @@ export function UserDetailView() {
       ) : null}
       {dialog === "suspend" ? (
         <SuspendDialog userId={userId} onClose={() => setDialog(null)} onDone={refresh} />
+      ) : null}
+      {dialog === "reset" ? (
+        <ResetCollectionDialog
+          userId={userId}
+          name={playerName(data)}
+          onClose={() => setDialog(null)}
+          onDone={refresh}
+        />
+      ) : null}
+      {dialog === "delete" ? (
+        <DeleteUserDialog
+          userId={userId}
+          email={data.email}
+          admin={data.role === "ADMIN"}
+          onClose={() => setDialog(null)}
+          onDone={() => navigate("/admin/users", { replace: true })}
+        />
       ) : null}
       {dialog === "refill" ? (
         <ConfirmDialog
@@ -397,22 +426,11 @@ function PlayerCards({
       />
 
       {removing ? (
-        <ConfirmDialog
-          danger
-          title={t.dialogs.lockTitle}
-          message={t.dialogs.lockBody(removing.card.name, removing.quantity)}
-          confirmLabel={t.userDetail.lock}
-          busy={busy}
-          onCancel={() => setRemoving(null)}
-          onConfirm={() =>
-            void run((user) => adminApi.lockCard(user, userId, removing.card.id), {
-              success: t.dialogs.locked(removing.card.name),
-              onDone: () => {
-                setRemoving(null);
-                onChanged();
-              },
-            })
-          }
+        <RemoveCopiesDialog
+          userId={userId}
+          item={removing}
+          onClose={() => setRemoving(null)}
+          onDone={onChanged}
         />
       ) : null}
     </Panel>

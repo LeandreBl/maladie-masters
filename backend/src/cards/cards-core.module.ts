@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { FamiliesCoreModule } from "../families/families-core.module";
 import { CollectionService } from "./collection.service";
 import { RarityRankingService } from "./rarity-ranking.service";
 
@@ -7,7 +8,8 @@ import { RarityRankingService } from "./rarity-ranking.service";
  * layer — the sync CLI — and so no authentication to guard them with.
  */
 @Module({
+  imports: [FamiliesCoreModule],
   providers: [CollectionService, RarityRankingService],
-  exports: [CollectionService, RarityRankingService],
+  exports: [CollectionService, RarityRankingService, FamiliesCoreModule],
 })
 export class CardsCoreModule {}

@@ -21,6 +21,7 @@ import { AppException } from "../common/app.exception";
 import { ErrorCode } from "../common/error-code.enum";
 import type { AppLocale } from "../common/locale";
 import { DiscordAnnouncerService } from "../discord/discord-announcer.service";
+import { FamiliesService } from "../families/families.service";
 import { pageWindow, type PageQueryDto } from "../common/pagination";
 import { PrismaService } from "../prisma/prisma.service";
 import { RealtimeService } from "../realtime/realtime.service";
@@ -52,6 +53,7 @@ export class PacksService {
     private readonly settings: GameSettingsService,
     private readonly realtime: RealtimeService,
     private readonly discord: DiscordAnnouncerService,
+    private readonly families: FamiliesService,
   ) {}
 
   async wallet(userId: string): Promise<PackWalletDto> {
@@ -156,7 +158,20 @@ export class PacksService {
       },
     });
 
-    return { ...this.toOpeningDto(opening, locale), wallet };
+    // Only a first copy can complete a family. A failure here must not cost
+    // the player the pack they already opened.
+    const completedFamilies = await this.families
+      .completedWith(
+        userId,
+        opening.cards.filter((entry) => entry.isNew).map((entry) => entry.cardId),
+        locale,
+      )
+      .catch((error) => {
+        this.logger.warn(`Completed families not computed: ${String(error)}`);
+        return [];
+      });
+
+    return { ...this.toOpeningDto(opening, locale), wallet, completedFamilies };
   }
 
   async history(

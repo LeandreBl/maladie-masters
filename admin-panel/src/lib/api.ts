@@ -165,6 +165,15 @@ export type CardLocalization = {
   pageviews: number;
 };
 
+/** A family a card belongs to; `enabled: false` is hidden from players. */
+export type CardFamilyBrief = {
+  id: string;
+  name: string;
+  icon: string | null;
+  bonusPoints: number;
+  enabled: boolean;
+};
+
 export type AdminCardDetail = AdminCard & {
   extract: string | null;
   localizations: CardLocalization[];
@@ -173,6 +182,89 @@ export type AdminCardDetail = AdminCard & {
   drops: number;
   drops7d: number;
   lastSyncedAt: string;
+  families: CardFamilyBrief[];
+};
+
+// --- Families ---------------------------------------------------------------
+
+export type FamilyRuleField =
+  | "name"
+  | "title"
+  | "description"
+  | "extract"
+  | "icd10"
+  | "wikidataId"
+  | "wikidataClass";
+
+export const FAMILY_RULE_FIELDS: FamilyRuleField[] = [
+  "name",
+  "title",
+  "description",
+  "extract",
+  "icd10",
+  "wikidataClass",
+  "wikidataId",
+];
+
+/** The fields that exist once per language. Mirrors the backend's `LOCALIZED_FIELDS`. */
+export const LOCALIZED_RULE_FIELDS: FamilyRuleField[] = ["name", "title", "description", "extract"];
+
+export type FamilyRule = {
+  field: FamilyRuleField;
+  /** A case-insensitive regex, or QIDs for `wikidataClass`. */
+  pattern: string;
+  locale?: Locale | null;
+  exclude?: boolean;
+};
+
+export type FamilyMatch = "any" | "all";
+
+export type FamilyDefinition = {
+  match: FamilyMatch;
+  rules: FamilyRule[];
+  includedCardIds: string[];
+  excludedCardIds: string[];
+};
+
+export type FamilyPayload = FamilyDefinition & {
+  names: { en: string; fr?: string; zh?: string };
+  icon: string | null;
+  bonusPoints: number;
+  enabled: boolean;
+  position?: number;
+};
+
+export type AdminFamily = FamilyPayload & {
+  id: string;
+  name: string;
+  position: number;
+  members: number;
+  droppable: number;
+  completions: number;
+  resolvedAt: string | null;
+  resolveError: string | null;
+  updatedAt: string;
+};
+
+export type FamilyPreviewView = "members" | "excluded";
+
+export type FamilyCardReason = "rules" | "manual" | "excludedByRule" | "excludedByHand";
+
+export type FamilyPreviewCard = Card & {
+  wikidataId: string;
+  droppable: boolean;
+  /** Indexes of the rules the card matches. */
+  hits: number[];
+  reason: FamilyCardReason;
+};
+
+export type FamilyPreview = {
+  counts: { members: number; droppable: number; excluded: number };
+  rules: Array<{ matches: number; error: string | null; labels: string[] }>;
+  items: FamilyPreviewCard[];
+  total: number;
+  page: number;
+  pageSize: number;
 };
 
 export type SyncRun = {
@@ -308,7 +400,13 @@ export type LeaderboardEntry = {
   score: number;
 };
 
-export type AdminGrant = { email: string; createdAt: string; hasSignedIn: boolean };
+export type AdminGrant = {
+  email: string;
+  createdAt: string;
+  hasSignedIn: boolean;
+  /** Set by the backend's ADMINS variable: the panel cannot revoke it. */
+  bootstrap: boolean;
+};
 
 // --- Errors ----------------------------------------------------------------
 
@@ -462,6 +560,24 @@ export const adminApi = {
     apiRequest<{ cardId: string; removed: boolean }>(user, `/v1/admin/users/${id}/cards/${cardId}`, {
       method: "DELETE",
     }),
+  removeCopies: (user: User, id: string, cardId: string, quantity: number, shiny: boolean) =>
+    apiRequest<{ cardId: string; removed: number; quantity: number; shinyQuantity: number }>(
+      user,
+      `/v1/admin/users/${id}/cards/${cardId}/remove`,
+      jsonBody("POST", { quantity, shiny }),
+    ),
+  resetCollection: (user: User, id: string, history: boolean) =>
+    apiRequest<AdminUserDetail>(user, `/v1/admin/users/${id}/reset`, jsonBody("POST", { history })),
+  resetAllCollections: (user: User, history: boolean) =>
+    apiRequest<{ players: number; cards: number; openings: number }>(
+      user,
+      "/v1/admin/users/reset-collections",
+      jsonBody("POST", { history, confirm: "RESET" }),
+    ),
+  deleteUser: (user: User, id: string) =>
+    apiRequest<{ userId: string; deleted: boolean; firebaseDeleted: boolean }>(user, `/v1/admin/users/${id}`, {
+      method: "DELETE",
+    }),
   suspend: (user: User, id: string, reason: string) =>
     apiRequest<AdminUserDetail>(user, `/v1/admin/users/${id}/suspend`, jsonBody("POST", { reason })),
   reactivate: (user: User, id: string) =>
@@ -476,6 +592,24 @@ export const adminApi = {
     apiRequest<AdminCardDetail>(user, `/v1/admin/cards/${id}`),
   updateCard: (user: User, id: string, payload: { enabled?: boolean; rarityOverride?: Rarity | null }) =>
     apiRequest<AdminCardDetail>(user, `/v1/admin/cards/${id}`, jsonBody("PATCH", payload)),
+  // — families —
+  families: (user: User) => apiRequest<AdminFamily[]>(user, "/v1/admin/families"),
+  family: (user: User, id: string) => apiRequest<AdminFamily>(user, `/v1/admin/families/${id}`),
+  previewFamily: (
+    user: User,
+    payload: FamilyDefinition & { view?: FamilyPreviewView; search?: string; page?: number; pageSize?: number },
+    signal?: AbortSignal,
+  ) =>
+    apiRequest<FamilyPreview>(user, "/v1/admin/families/preview", { ...jsonBody("POST", payload), signal }),
+  createFamily: (user: User, payload: FamilyPayload) =>
+    apiRequest<AdminFamily>(user, "/v1/admin/families", jsonBody("POST", payload)),
+  updateFamily: (user: User, id: string, payload: FamilyPayload) =>
+    apiRequest<AdminFamily>(user, `/v1/admin/families/${id}`, jsonBody("PATCH", payload)),
+  deleteFamily: (user: User, id: string) =>
+    apiRequest<{ id: string; removed: boolean }>(user, `/v1/admin/families/${id}`, { method: "DELETE" }),
+  resolveFamilies: (user: User) =>
+    apiRequest<{ resolved: number; failed: number }>(user, "/v1/admin/families/resolve", jsonBody("POST")),
+
   recomputeRarities: (user: User) =>
     apiRequest<{ ranked: number; changed: number }>(user, "/v1/admin/cards/recompute-rarities", jsonBody("POST")),
 

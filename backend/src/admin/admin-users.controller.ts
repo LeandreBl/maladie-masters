@@ -20,7 +20,13 @@ import {
   AdminUsersPageDto,
   AdminUsersQueryDto,
   CardRemovalDto,
+  CollectionsResetDto,
+  CopiesRemovalDto,
   GrantPacksDto,
+  RemoveCopiesDto,
+  ResetAllCollectionsDto,
+  ResetCollectionDto,
+  UserDeletionDto,
   SuspendUserDto,
   UnlockCardDto,
 } from "./dto/admin-users.dto";
@@ -43,6 +49,23 @@ export class AdminUsersController {
   })
   list(@Query() query: AdminUsersQueryDto): Promise<AdminUsersPageDto> {
     return this.users.list(query);
+  }
+
+  @Post("reset-collections")
+  @HttpCode(HttpStatus.OK)
+  @ApiEndpoint({
+    summary: "Reset every collection",
+    description:
+      "Empties every player's collection, admins included, and the pack history with `history: true`. Wallets are kept. Needs `confirm: \"RESET\"`.",
+    response: "What was erased",
+    type: CollectionsResetDto,
+    validation: true,
+  })
+  resetAll(
+    @CurrentUser() actor: User,
+    @Body() dto: ResetAllCollectionsDto,
+  ): Promise<CollectionsResetDto> {
+    return this.users.resetAllCollections(actor, dto.history ?? false);
   }
 
   @Get(":id")
@@ -167,6 +190,65 @@ export class AdminUsersController {
     @UuidParam("cardId", "Identifier of the card") cardId: string,
   ): Promise<CardRemovalDto> {
     return this.users.lockCard(actor, id, cardId);
+  }
+
+  @Post(":id/cards/:cardId/remove")
+  @HttpCode(HttpStatus.OK)
+  @ApiEndpoint({
+    summary: "Take copies of a card",
+    description:
+      "Takes some normal copies — or shiny ones with `shiny: true`. The card leaves the collection when no copy is left.",
+    response: "Copies left",
+    type: CopiesRemovalDto,
+    validation: true,
+    notFound: true,
+  })
+  removeCopies(
+    @CurrentUser() actor: User,
+    @UuidParam("id", "Identifier of the player") id: string,
+    @UuidParam("cardId", "Identifier of the card") cardId: string,
+    @Body() dto: RemoveCopiesDto,
+  ): Promise<CopiesRemovalDto> {
+    return this.users.removeCopies(actor, id, cardId, dto.quantity, dto.shiny ?? false);
+  }
+
+  @Post(":id/reset")
+  @HttpCode(HttpStatus.OK)
+  @ApiEndpoint({
+    summary: "Reset a player's collection",
+    description:
+      "Empties the collection, and the pack history with `history: true`. The wallet is kept.",
+    response: "Player after the reset",
+    type: AdminUserDetailDto,
+    validation: true,
+    notFound: true,
+  })
+  @ApiLocalized()
+  reset(
+    @CurrentUser() actor: User,
+    @UuidParam("id", "Identifier of the player") id: string,
+    @Body() dto: ResetCollectionDto,
+    @RequestLocale() locale: AppLocale,
+  ): Promise<AdminUserDetailDto> {
+    return this.users.resetCollection(actor, id, dto.history ?? false, locale);
+  }
+
+  @Delete(":id")
+  @ApiEndpoint({
+    summary: "Delete a player",
+    description:
+      "Deletes the account for good, with its collection, history and Firebase account. A session already open could sign in again for up to a minute and would get a new, empty account.",
+    response: "Player deleted",
+    type: UserDeletionDto,
+    notFound: true,
+    forbidden:
+      "Not one's own account (`SELF_DELETION_FORBIDDEN`), nor the last admin (`LAST_ADMIN_REMOVAL_FORBIDDEN`), nor an admin from the ADMINS variable (`BOOTSTRAP_ADMIN_PROTECTED`). An admin's grant is revoked with the account.",
+  })
+  remove(
+    @CurrentUser() actor: User,
+    @UuidParam("id", "Identifier of the player") id: string,
+  ): Promise<UserDeletionDto> {
+    return this.users.deleteUser(actor, id);
   }
 
   @Post(":id/suspend")

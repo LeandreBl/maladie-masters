@@ -6,6 +6,8 @@ import { AdminAccessController } from "./admin-access.controller";
 import { AdminAccessService } from "./admin-access.service";
 import { AdminCardsController } from "./admin-cards.controller";
 import { AdminCardsService } from "./admin-cards.service";
+import { AdminFamiliesController } from "./admin-families.controller";
+import { AdminFamiliesService } from "./admin-families.service";
 import { AdminSettingsController } from "./admin-settings.controller";
 import { AdminStatsController } from "./admin-stats.controller";
 import { AdminStatsService } from "./admin-stats.service";
@@ -18,6 +20,7 @@ import { AdminUsersService } from "./admin-users.service";
   controllers: [
     AdminUsersController,
     AdminCardsController,
+    AdminFamiliesController,
     AdminStatsController,
     AdminSyncController,
     AdminSettingsController,
@@ -26,6 +29,7 @@ import { AdminUsersService } from "./admin-users.service";
   providers: [
     AdminUsersService,
     AdminCardsService,
+    AdminFamiliesService,
     AdminStatsService,
     AdminAccessService,
   ],

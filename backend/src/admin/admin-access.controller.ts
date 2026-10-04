@@ -50,7 +50,8 @@ export class AdminAccessController {
     response: "Admin grant removed",
     type: AdminRemovalDto,
     notFound: true,
-    forbidden: "Removing it would leave no admin (`LAST_ADMIN_REMOVAL_FORBIDDEN`).",
+    forbidden:
+      "Removing it would leave no admin (`LAST_ADMIN_REMOVAL_FORBIDDEN`), or it comes from the ADMINS variable (`BOOTSTRAP_ADMIN_PROTECTED`).",
   })
   remove(
     @CurrentUser() actor: User,

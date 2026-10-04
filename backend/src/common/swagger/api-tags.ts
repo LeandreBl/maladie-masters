@@ -13,6 +13,7 @@ export const ApiTag = {
   Realtime: "realtime",
   AdminUsers: "admin-users",
   AdminCards: "admin-cards",
+  AdminFamilies: "admin-families",
   AdminStats: "admin-stats",
   AdminSync: "admin-sync",
   AdminSettings: "admin-settings",
@@ -43,6 +44,8 @@ export const API_TAG_DESCRIPTIONS: Record<ApiTagName, string> = {
     "Player administration: profiles, pack grants, card unlocks, suspensions.",
   [ApiTag.AdminCards]:
     "Catalog administration: disable a card, pin its rarity, recompute the ranking.",
+  [ApiTag.AdminFamilies]:
+    "Card families: themed sets picked by regex rules and Wikidata classes, with a live preview, and the bonus a player earns for completing one.",
   [ApiTag.AdminStats]: "Dashboard metrics for the admin panel.",
   [ApiTag.AdminSync]:
     "The Wikipedia import: run history, live progress, and a manual trigger.",

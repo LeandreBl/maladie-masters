@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
 import { Transform, Type } from "class-transformer";
 import {
+  Equals,
   IsBoolean,
   IsIn,
   IsInt,
@@ -184,4 +185,70 @@ export class SuspendUserDto {
 export class CardRemovalDto {
   @ApiProperty({ format: "uuid" }) cardId!: string;
   @ApiProperty() removed!: boolean;
+}
+
+export class RemoveCopiesDto {
+  @ApiPropertyOptional({
+    minimum: 1,
+    maximum: 10000,
+    description: "Copies to take. Omitted, or more than owned: every copy of that kind.",
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(10000)
+  quantity?: number;
+
+  @ApiPropertyOptional({
+    default: false,
+    description: "Take shiny copies instead of normal ones.",
+  })
+  @IsOptional()
+  @IsBoolean()
+  shiny?: boolean;
+}
+
+export class CopiesRemovalDto {
+  @ApiProperty({ format: "uuid" }) cardId!: string;
+  @ApiProperty({ description: "Copies taken." }) removed!: number;
+  @ApiProperty({ description: "Copies left, shiny ones included." }) quantity!: number;
+  @ApiProperty({ description: "Shiny copies left." }) shinyQuantity!: number;
+}
+
+export class ResetCollectionDto {
+  @ApiPropertyOptional({
+    default: false,
+    description: "Also erase the pack openings, so the history starts over too.",
+  })
+  @IsOptional()
+  @IsBoolean()
+  history?: boolean;
+}
+
+export class ResetAllCollectionsDto extends ResetCollectionDto {
+  @ApiProperty({
+    enum: ["RESET"],
+    description: "Must be `RESET`: this empties every player's collection.",
+  })
+  @Equals("RESET")
+  confirm!: "RESET";
+}
+
+export class CollectionsResetDto {
+  @ApiProperty({ description: "Players whose collection was not empty." })
+  players!: number;
+
+  @ApiProperty({ description: "Collection rows erased." })
+  cards!: number;
+
+  @ApiProperty({ description: "Pack openings erased." })
+  openings!: number;
+}
+
+export class UserDeletionDto {
+  @ApiProperty({ format: "uuid" }) userId!: string;
+  @ApiProperty() deleted!: boolean;
+  @ApiProperty({ description: "The Firebase account was deleted as well." })
+  firebaseDeleted!: boolean;
 }
